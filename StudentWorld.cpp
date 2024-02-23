@@ -143,6 +143,7 @@ void StudentWorld::removeDeadGameObjects(){
         if((*it)->isActive() == false)
         {
             (*it) ->setVisible(false);
+            delete *it;
             it = m_actors.erase(it);
         }
     }
