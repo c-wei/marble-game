@@ -21,12 +21,19 @@ public:
     virtual int move();
     virtual void cleanUp();
     
+    
+    //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
+
     bool isBlockingAt(double x, double y);
-    Avatar* getAvatar() { return m_avatar; }
-    std::list<Actor*>& getActors() { return m_actors; }
+    Avatar* getAvatar();
+    std::list<Actor*>& getActors();
     Actor* actorAt(double x, double y);
     void removeDeadGameObjects();
+    int getBonus();
+    std::string format(int score, int level, int lives, int health, int ammo, int bonus);
+    void setDisplayText();
 
+    
 private:
     Avatar* m_avatar;
     std::list<Actor*> m_actors;

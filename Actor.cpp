@@ -274,6 +274,11 @@ void Alive::setDead()
     setActiveState(false);
 }
     
+int Alive::getHP()
+{
+    return m_hp;
+}
+
 //---------------------------------------------------AVATAR---------------------------------------------------
 Avatar::Avatar(StudentWorld* sw, double x, double y) : Alive(sw, IID_PLAYER, x, y, right, 20), m_peaCount(20){ }
 Avatar::~Avatar(){}
@@ -333,6 +338,16 @@ void Avatar::doSomething()
             }
         }
     }
+}
+
+int Avatar::getHealth()
+{
+    return getHP() * 5;
+}
+
+int Avatar::getAmmo()
+{
+    return m_peaCount;
 }
 
 void Avatar::playDeadSoundEffect()
@@ -495,8 +510,11 @@ void RageBot::doSomething()
         if((numTicks + 1) % tickRest() == 0)
         {
             if(inRange() && facingPlayer()){
-               if(!cantShoot())
+                if(!cantShoot()){
                     shootPea();
+                    //DOESN'T PLAY SHOOTING SOUND BECAUSE OF THIS LINE FOR SOME REASON??
+                    getWorld()->getAvatar()->takeDamage(2);
+                }
                else
                    moveForward();
             }

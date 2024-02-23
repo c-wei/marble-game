@@ -141,6 +141,7 @@ public:
     bool isAlive();
     void setDead();
     virtual void damageEffect();
+    int getHP();
 
 
 private:
@@ -161,6 +162,8 @@ public:
     virtual bool blocksMovement();
     
     void restorePeas();
+    int getHealth();
+    int getAmmo();
         
 private:
     int m_peaCount;

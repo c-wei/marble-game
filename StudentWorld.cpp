@@ -90,6 +90,8 @@ int StudentWorld::move()
     // This code is here merely to allow the game to build, run, and terminate after you type q
 
     //setGameStatText("Game will end when you type q");
+    setDisplayText();
+    
     m_avatar -> doSomething();
     list<Actor*>::iterator it;
     for(it = m_actors.begin(); it != m_actors.end(); it++){
@@ -124,11 +126,27 @@ void StudentWorld::cleanUp()
     m_actors.clear();
 }
 
-bool StudentWorld::isBlockingAt(double x, double y){
+//----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
+
+list<Actor*>& StudentWorld::getActors()
+{
+    return m_actors;
+}
+
+Avatar* StudentWorld::getAvatar()
+{
+    return m_avatar;
+}
+
+bool StudentWorld::isBlockingAt(double x, double y)
+{
     list<Actor*>::iterator it;
-    if(m_avatar->getX() == x && m_avatar->getY() == y) return true;
-    for(it = m_actors.begin(); it != m_actors.end(); it++){
-        if((*it)->getX() == x && (*it)->getY() == y){
+    if(m_avatar->getX() == x && m_avatar->getY() == y) 
+        return true;
+    for(it = m_actors.begin(); it != m_actors.end(); it++)
+    {
+        if((*it)->getX() == x && (*it)->getY() == y)
+        {
            if((*it) -> blocksMovement())
             return true;
         }
@@ -137,9 +155,11 @@ bool StudentWorld::isBlockingAt(double x, double y){
     return false;
 }
 
-void StudentWorld::removeDeadGameObjects(){
+void StudentWorld::removeDeadGameObjects()
+{
     list<Actor*>::iterator it;
-    for(it = m_actors.begin(); it != m_actors.end(); it++){
+    for(it = m_actors.begin(); it != m_actors.end(); it++)
+    {
         if((*it)->isActive() == false)
         {
             (*it) ->setVisible(false);
@@ -149,12 +169,50 @@ void StudentWorld::removeDeadGameObjects(){
     }
 }
 
-Actor* StudentWorld::actorAt(double x, double y){
-    std::list<Actor*>::iterator it;
-    if(m_avatar->getX()  == x && m_avatar->getY() == y) return m_avatar;
-    for(it = m_actors.begin(); it != m_actors.end(); it++){
+Actor* StudentWorld::actorAt(double x, double y)
+{
+    list<Actor*>::iterator it;
+    if(m_avatar->getX()  == x && m_avatar->getY() == y) 
+        return m_avatar;
+    for(it = m_actors.begin(); it != m_actors.end(); it++)
+    {
         if((*it)->getX() == x && (*it)->getY() && (*it)->blocksMovement())
             return *it;
     }
     return *m_actors.end();
+}
+
+int StudentWorld::getBonus()
+{
+    return bonusPts;
+}
+
+string StudentWorld::format(int score, int level, int lives, int health, int ammo, int bonus)
+{
+    string formattedOutput = "";
+    ostringstream scoreOSS, levelOSS, livesOSS, healthOSS, ammoOSS, bonusOSS;
+    scoreOSS << setw(7) << setfill('0') << score;
+    levelOSS << setw(2) << setfill('0') << level;
+    livesOSS << setw(2) << lives;
+    healthOSS << setw(3) << health;
+    ammoOSS << setw(3) << ammo;
+    bonusOSS << setw(4) << bonus;
+    formattedOutput += "Score: " + scoreOSS.str() + "  Level: " + levelOSS.str() + "  Lives: " + livesOSS.str() + "  Health:" + healthOSS.str() + "%" + "  Ammo: " + ammoOSS.str() + "  Bonus: " + bonusOSS.str();
+    return formattedOutput;
+    
+}
+
+void StudentWorld::setDisplayText()
+{
+    int score = getScore();
+    int level = getLevel();
+    unsigned int bonus = getBonus();
+    int lives = getLives();
+    int health = m_avatar->getHealth();
+    int ammo = m_avatar->getAmmo();
+    // Next, create a string from your statistics, of the form:
+    // Score: 0000100 Level: 03 Lives: 3 Health: 70% Ammo: 216 Bonus: 34
+    string s = format(score, level, lives, health, ammo, bonus);
+    // Finally, update the display text at the top of the screen with your // newly created stats
+    setGameStatText(s); // calls our provided GameWorld::setGameStatText
 }
