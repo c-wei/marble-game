@@ -147,7 +147,7 @@ void StudentWorld::removeDeadGameObjects(){
         }
     }
 }
-/*
+
 Actor* StudentWorld::actorAt(double x, double y){
     std::list<Actor*>::iterator it;
     if(m_avatar->getX()  == x && m_avatar->getY() == y) return m_avatar;
@@ -156,4 +156,4 @@ Actor* StudentWorld::actorAt(double x, double y){
             return *it;
     }
     return *m_actors.end();
-}*/
+}

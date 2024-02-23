@@ -26,10 +26,15 @@ public:
     virtual void doSomething() = 0;
     virtual bool blocksMovement() = 0;
     
-    virtual bool isWall();
+    virtual bool isWall() const;
+    virtual void takeDamage(int damage);
+    virtual void damageEffect();
+    bool existingObstacle(double x, double y);
+    void moveForward();
+
     
 private:
-    StudentWorld* m_world ;
+    StudentWorld* m_world;
     bool m_isActive;
 };
 
@@ -45,7 +50,7 @@ public:
     
     virtual void doSomething();
     virtual bool blocksMovement();
-    virtual bool isWall();
+    virtual bool isWall() const;
     
 private:
 
@@ -61,6 +66,7 @@ public:
     
     virtual void doSomething();                    //continutes moving until it hits smth and possibly makes damage
     virtual bool blocksMovement();                     //doesn't obstruct movement
+
     
 private:
     
@@ -76,6 +82,7 @@ public:
     virtual ~ExtraLifeGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+
 private:
 
 };
@@ -89,6 +96,7 @@ public:
     virtual ~RestoreHealthGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+    
 private:
     
 };
@@ -102,6 +110,7 @@ public:
     virtual ~AmmoGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+
 private:
     
 };
@@ -116,6 +125,7 @@ public:
     
     virtual void doSomething();
     virtual bool blocksMovement();
+
 };
 //---------------------------------------------------ALL THINGS ALIVE---------------------------------------------------
 
@@ -130,10 +140,12 @@ public:
     void restoreHealth();
     bool isAlive();
     void setDead();
-    
+    virtual void damageEffect();
+
 
 private:
     virtual void playDamageSoundEffect() = 0;
+    virtual void playDeadSoundEffect() = 0;
     int m_hp;
 
 };
@@ -149,11 +161,11 @@ public:
     virtual bool blocksMovement();
     
     void restorePeas();
-    
+        
 private:
     int m_peaCount;
     virtual void playDamageSoundEffect();
-
+    virtual void playDeadSoundEffect();
 
 };
 
@@ -173,6 +185,7 @@ public:
     
 private:
     virtual void playDamageSoundEffect();
+    virtual void playDeadSoundEffect();
 };
 
 //---------------------------------------------------RAGEBOTS---------------------------------------------------
@@ -194,17 +207,15 @@ public:
     
     bool inRange();
     
-    bool existingObstacle();
+    bool cantShoot();
     
-    bool existingObstacle(double x, double y);
     void shootPea();
     
     void doSomething();
     
-    void moveAround();
 private:
     virtual void playDamageSoundEffect();
-
+    virtual void playDeadSoundEffect();
     int numTicks;
 };
 

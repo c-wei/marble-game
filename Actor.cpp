@@ -30,9 +30,54 @@ void Actor::setActiveState(bool active)
     m_isActive = active;
 }
 
-bool Actor::isWall()
+bool Actor::isWall() const
 {
     return false;
+}
+
+void Actor::takeDamage(int damage) { return; }
+void Actor::damageEffect() { return; }
+
+bool Actor::existingObstacle(double x, double y)
+{
+    
+    if(getWorld()->isBlockingAt(x, y))
+        return true;
+    else
+        return false;
+}
+
+void Actor::moveForward()
+{
+    if(getDirection() == right)
+    {
+        if(!(existingObstacle(getX()+1, getY())))
+            moveTo(getX()+1, getY());
+        else
+            setDirection(left);
+    }
+    else if(getDirection() == left)
+    {
+        if(!(existingObstacle(getX()-1, getY())))
+            moveTo(getX()-1, getY());
+        else
+            setDirection(right);
+    }
+    
+    else if(getDirection() == up)
+    {
+        if(!(existingObstacle(getX(), getY()+1)))
+            moveTo(getX(), getY()+1);
+        else
+            setDirection(down);
+    }
+    else if(getDirection() == down)
+    {
+        if(!((existingObstacle(getX(), getY()-1))))
+            moveTo(getX(), getY()-1);
+        else setDirection(up);
+        
+    }
 }
 
 //---------------------------------------------------WALL---------------------------------------------------
@@ -51,26 +96,52 @@ bool Wall::blocksMovement()
     return true;
 }
 
-bool Wall::isWall()
+bool Wall::isWall() const
 {
     return true;
 }
 
 //---------------------------------------------------PEAS---------------------------------------------------
 
-Pea::Pea(StudentWorld* sw, double x, double y, int dir) : Actor(sw, IID_PEA, x, y, dir, true) {}
-Pea::~Pea(){ }
+Pea::Pea(StudentWorld* sw, double x, double y, int dir) : Actor(sw, IID_PEA, x, y, dir, true) { }
 
-//TODO:IMPLEMENT
-void Pea::doSomething()
-{
-    if(!isActive()) return;
-    
-}
+Pea::~Pea() { }
+
 bool Pea::blocksMovement()
 {
     return false;
 }
+//TODO:IMPLEMENT
+void Pea::doSomething()
+{
+    /*
+    if(!isActive()) return;
+    Actor* peaStrike = getWorld()->actorAt(getX(), getY());
+    if(peaStrike != *(getWorld()->getActors().end())){
+        if(!peaStrike->isWall()){
+            peaStrike->takeDamage(2);
+            peaStrike->damageEffect();
+            setActiveState(false);
+        }
+        else if(peaStrike->isWall())
+            setActiveState(false);
+    }
+    moveForward();
+    
+    if(peaStrike != *(getWorld()->getActors().end())){
+        if(!peaStrike->isWall()){
+            peaStrike->takeDamage(2);
+            peaStrike->damageEffect();
+            setActiveState(false);
+        }
+        else if(peaStrike->isWall())
+            setActiveState(false);
+    }
+     */
+    
+}
+
+
 
 //---------------------------------------------------GOODIES---------------------------------------------------
 
@@ -122,7 +193,8 @@ bool RestoreHealthGoodie::blocksMovement()
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
 
 AmmoGoodie::AmmoGoodie(StudentWorld* sw, double x, double y) : Actor(sw, IID_AMMO, x, y, none, true) { }
-AmmoGoodie::~AmmoGoodie() { }
+
+AmmoGoodie::~AmmoGoodie() {}
 void AmmoGoodie::doSomething()
 {
     if(!isActive()) return;
@@ -171,6 +243,14 @@ Alive::Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp)
     
 Alive::~Alive(){}
     
+void Alive::damageEffect()
+{
+    if(!isActive()){
+        playDeadSoundEffect();
+    }
+    else return;
+}
+
 void Alive::takeDamage(int damage)
 {
     m_hp -= damage;
@@ -255,6 +335,11 @@ void Avatar::doSomething()
     }
 }
 
+void Avatar::playDeadSoundEffect()
+{
+    getWorld()->playSound(SOUND_PLAYER_DIE);
+}
+
 void Avatar::playDamageSoundEffect()
 {
     getWorld()->playSound(SOUND_PLAYER_IMPACT);
@@ -280,6 +365,11 @@ void Marble::getPushed()
     
 }
 
+void Marble::playDeadSoundEffect()
+{
+    return;
+}
+
 void Marble::playDamageSoundEffect()
 {
     return;
@@ -293,6 +383,8 @@ RageBot::RageBot(StudentWorld* sw, double x, double y, int dir) : Alive(sw, IID_
 }
 
 RageBot::~RageBot() { }
+
+bool RageBot::blocksMovement() {return true;}
 
 int RageBot::tickRest() {
     int ticks = (28 - getWorld()->getLevel()) / 4;
@@ -332,7 +424,7 @@ bool RageBot::inRange(){
     return false;
 }
 
-bool RageBot::existingObstacle()
+bool RageBot::cantShoot()
 {
     
     if(getDirection() == right)
@@ -379,14 +471,6 @@ bool RageBot::existingObstacle()
     return false;
     
 }
-bool RageBot::existingObstacle(double x, double y)
-{
-    
-    if(getWorld()->isBlockingAt(x, y))
-        return true;
-    else
-        return false;
-}
 
 void RageBot::shootPea(){
     int x = getX();
@@ -399,39 +483,6 @@ void RageBot::shootPea(){
     getWorld()->playSound(SOUND_ENEMY_FIRE);
 }
 
-void RageBot::moveAround()
-{
-    if(getDirection() == right)
-    {
-        if(!(existingObstacle(getX()+1, getY())))
-            moveTo(getX()+1, getY());
-        else
-            setDirection(left);
-    }
-    else if(getDirection() == left)
-    {
-        if(!(existingObstacle(getX()-1, getY())))
-            moveTo(getX()-1, getY());
-        else
-            setDirection(right);
-    }
-    
-    
-    else if(getDirection() == up)
-    {
-        if(!(existingObstacle(getX(), getY()+1)))
-            moveTo(getX(), getY()+1);
-        else
-            setDirection(down);
-    }
-    else if(getDirection() == down)
-    {
-        if(!((existingObstacle(getX(), getY()-1))))
-            moveTo(getX(), getY()-1);
-        else setDirection(up);
-        
-    }
-}
 
 void RageBot::doSomething()
 {
@@ -444,15 +495,20 @@ void RageBot::doSomething()
         if((numTicks + 1) % tickRest() == 0)
         {
             if(inRange() && facingPlayer()){
-               if(!existingObstacle())
+               if(!cantShoot())
                     shootPea();
                else
-                   moveAround();
+                   moveForward();
             }
             else
-                moveAround();
+                moveForward();
         }
     }
+}
+
+void RageBot::playDeadSoundEffect()
+{
+    getWorld()->playSound(SOUND_ROBOT_DIE);
 }
 
 void RageBot::playDamageSoundEffect()
