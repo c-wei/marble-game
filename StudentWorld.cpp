@@ -58,6 +58,9 @@ int StudentWorld::init()
                     case Level::wall:
                         m_actors.push_back(new Wall(this, x, y));
                         break;
+                    case Level::pit:
+                        m_actors.push_back(new Pit(this, x, y));
+                        break;
                     case Level::crystal:
                         m_actors.push_back(new Crystal(this, x, y));
                         break;
@@ -135,24 +138,37 @@ Avatar* StudentWorld::getAvatar()
     return m_avatar;
 }
 
-bool StudentWorld::isBlockingAt(double x, double y)
+bool StudentWorld::actorIsBlockingAt(double x, double y)
 {
     list<Actor*>::iterator it;
     if(m_avatar->getX() == x && m_avatar->getY() == y) 
         return true;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
-        if((*it)->getX() == x && (*it)->getY() == y)
-        {
-           if((*it) -> blocksMovement())
-            return true;
-        }
+        if((*it)->getX() == x && (*it)->getY() == y && (*it) -> blocksMovement())
+                return true;
         else ;
     }
      
     return false;
 }
 
+bool StudentWorld::actorNotBlockingAt(double x, double y)
+{
+    list<Actor*>::iterator it;
+    if(m_avatar->getX() == x && m_avatar->getY() == y)
+        return true;
+    for(it = m_actors.begin(); it != m_actors.end(); it++)
+    {
+        if((*it)->getX() == x && (*it)->getY() == y && !(*it) -> blocksMovement())
+                return true;
+        else ;
+    }
+     
+    return false;
+}
+
+//NOT FINDING THE ACTOR AT X,Y
 Actor* StudentWorld::actorAt(double x, double y)
 {
     list<Actor*>::iterator it;
@@ -160,17 +176,12 @@ Actor* StudentWorld::actorAt(double x, double y)
         return m_avatar;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
-        if((*it)->getX() == x && (*it)->getY() == y && (*it)->blocksMovement())
-            return *it;
+        if((*it)->getX() == x && (*it)->getY() == y ){
+            //if((*it)->blocksMovement())
+                return *it;
+        }
     }
     return *m_actors.end();
-}
-
-bool StudentWorld::actorIsAt(Actor* actor, double x, double y)
-{
-    if(actorAt(x, y) != *(m_actors.end()))
-        return true;
-    else return false;
 }
 
 void StudentWorld::removeDeadGameObjects()

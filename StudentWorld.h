@@ -24,7 +24,8 @@ public:
     
     //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
 
-    bool isBlockingAt(double x, double y);
+    bool actorIsBlockingAt(double x, double y);
+    bool actorNotBlockingAt(double x, double y); //returns if there is an actor that exists but isn't blockign the road
     Avatar* getAvatar();
     std::list<Actor*>& getActors();
     Actor* actorAt(double x, double y);
@@ -32,7 +33,6 @@ public:
     int getBonus();
     std::string format(int score, int level, int lives, int health, int ammo, int bonus);
     void setDisplayText();
-    bool actorIsAt(Actor* actor, double x, double y);
     void addPea(int x, int y, int dir);
 
     

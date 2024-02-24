@@ -31,10 +31,11 @@ public:
     virtual bool isAvatar() const;
     virtual bool isRobot() const;
     virtual bool isMarble() const;
+    virtual bool isPit() const;
     
     virtual void takeDamage(int damage);
-    bool existingObstacle(double x, double y);
     void moveForward();
+    
 
     
 private:
@@ -57,6 +58,22 @@ public:
     virtual bool blocksMovement();
     virtual bool isWall() const;
     
+
+private:
+    virtual void reactToObstruction();
+};
+//---------------------------------------------------PIT---------------------------------------------------
+
+class Pit : public Actor
+{
+public:
+    Pit(StudentWorld* sw, double x, double y);
+    virtual ~Pit();
+    
+    virtual void doSomething();
+    virtual bool blocksMovement();
+    virtual bool isPit() const;
+    
 private:
     virtual void reactToObstruction();
 };
@@ -72,7 +89,7 @@ public:
     virtual void doSomething();                    //continutes moving until it hits smth and possibly makes damage
     virtual bool blocksMovement();                     //doesn't obstruct movement
 
-    
+
 private:
     virtual void reactToObstruction();
 };
@@ -101,7 +118,7 @@ public:
     virtual ~RestoreHealthGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
-    
+
 private:
     virtual void reactToObstruction();
 };
@@ -130,6 +147,7 @@ public:
     
     virtual void doSomething();
     virtual bool blocksMovement();
+
 private:
     virtual void reactToObstruction();
 
@@ -148,7 +166,6 @@ public:
     bool isAlive();
     void setDead();
     int getHP();
-
 
 private:
     virtual void playDamageSoundEffect() = 0;
@@ -171,7 +188,8 @@ public:
     int getHealth();
     int getAmmo();
     virtual bool isAvatar();
-        
+    void shootPea();
+
 private:
     int m_peaCount;
     virtual void playDamageSoundEffect();
@@ -195,7 +213,7 @@ public:
     
     void getPushed(); //move the marble if it's pushed
     virtual bool isMarble();
-    
+
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
@@ -229,7 +247,7 @@ public:
     void doSomething();
     
     virtual bool isRobot();
-    
+
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();

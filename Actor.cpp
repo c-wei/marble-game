@@ -55,22 +55,19 @@ bool Actor::isMarble() const
     return false;
 }
 
+bool Actor::isPit() const
+{
+    return false;
+}
+
 void Actor::takeDamage(int damage) { return; }
 
-bool Actor::existingObstacle(double x, double y)
-{
-    
-    if(getWorld()->isBlockingAt(x, y))
-        return true;
-    else
-        return false;
-}
 
 void Actor::moveForward()
 {
     if(getDirection() == right)
     {
-        if(!(existingObstacle(getX()+1, getY())))
+        if(!(getWorld()->actorIsBlockingAt(getX()+1, getY())))
             moveTo(getX()+1, getY());
         else
             //setDirection(left);
@@ -78,7 +75,7 @@ void Actor::moveForward()
     }
     else if(getDirection() == left)
     {
-        if(!(existingObstacle(getX()-1, getY())))
+        if(!(getWorld()->actorIsBlockingAt(getX()-1, getY())))
             moveTo(getX()-1, getY());
         else
             //setDirection(right);
@@ -87,7 +84,7 @@ void Actor::moveForward()
     
     else if(getDirection() == up)
     {
-        if(!(existingObstacle(getX(), getY()+1)))
+        if(!(getWorld()->actorIsBlockingAt(getX(), getY()+1)))
             moveTo(getX(), getY()+1);
         else
            // setDirection(down);
@@ -95,7 +92,7 @@ void Actor::moveForward()
     }
     else if(getDirection() == down)
     {
-        if(!((existingObstacle(getX(), getY()-1))))
+        if(!(getWorld()->actorIsBlockingAt(getX(), getY()-1)))
             moveTo(getX(), getY()-1);
         else 
             //setDirection(up);
@@ -103,6 +100,7 @@ void Actor::moveForward()
         
     }
 }
+
 
 //---------------------------------------------------WALL---------------------------------------------------
 
@@ -130,6 +128,31 @@ void Wall::reactToObstruction()
     return;
 }
 
+
+
+//---------------------------------------------------PIT---------------------------------------------------
+
+Pit::Pit(StudentWorld* sw, double x, double y) : Actor(sw, IID_PIT, x, y, none, true) { }
+
+Pit::~Pit() { }
+
+void Pit::doSomething()
+{
+    if(!isActive())
+        return;
+    if(getWorld()->actorAt(getX(), getY())->isMarble())
+    {
+        setActiveState(false);
+        getWorld()->actorAt(getX(), getY())->setActiveState(false);
+    }
+}
+
+bool Pit::blocksMovement() { return true; }
+
+bool Pit::isPit() const { return true; }
+
+void Pit::reactToObstruction() { return; }
+
 //---------------------------------------------------PEAS---------------------------------------------------
 
 Pea::Pea(StudentWorld* sw, double x, double y, int dir) : Actor(sw, IID_PEA, x, y, dir, true) { }
@@ -149,13 +172,14 @@ void Pea::reactToObstruction()
 void Pea::doSomething()
 {
     
+     /*NOT WORKING IDK WHY
+     
+   // moveForward();
     if(!isActive()) return;
-    
-    Actor* actor = getWorld()->actorAt(getX(), getY());
-    
-    if(getWorld()->actorIsAt(actor, getX(), getY()))
+    if(getWorld()->actorIsAt(getX(), getY()))
     {
-
+    Actor* actor = getWorld()->actorAt(getX(), getY()); --> dont think this is working
+    //NOT ENTERING IN THIS IF STATEMENT I DONT KNOW WHY
         if(actor->isRobot() || actor->isAvatar() || actor->isMarble())
         {
             actor->takeDamage(2);
@@ -167,9 +191,9 @@ void Pea::doSomething()
     
     moveForward();
     
-    if(getWorld()->actorIsAt(actor, getX(), getY()))
+    if(getWorld()->actorIsAt(getX(), getY()))
     {
-        
+        Actor* actor = getWorld()->actorAt(getX(), getY());
         if(actor->isRobot() || actor->isAvatar() || actor->isMarble())
         {
             actor->takeDamage(2);
@@ -180,9 +204,8 @@ void Pea::doSomething()
             setActiveState(false);
     }
      
-    
+    */
 }
-
 
 
 //---------------------------------------------------GOODIES---------------------------------------------------
@@ -215,6 +238,8 @@ void ExtraLifeGoodie::doSomething(){
     
 }
 
+
+
 //---------------------------------------------------RESTORE HEALTH GOODIE-----------------------------------------------
 
 RestoreHealthGoodie::RestoreHealthGoodie(StudentWorld* sw, double x, double y) : Actor(sw, IID_RESTORE_HEALTH, x, y, none, true) { }
@@ -241,6 +266,8 @@ void RestoreHealthGoodie::reactToObstruction()
 {
     return;
 }
+
+
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
 
 AmmoGoodie::AmmoGoodie(StudentWorld* sw, double x, double y) : Actor(sw, IID_AMMO, x, y, none, true) { }
@@ -269,6 +296,7 @@ void AmmoGoodie::reactToObstruction()
     return;
 }
 
+
 //---------------------------------------------------CRYSTAL---------------------------------------------------
 
 Crystal::Crystal(StudentWorld* sw, double x, double y) : Actor(sw, IID_CRYSTAL, x, y, none, true) { }
@@ -296,6 +324,8 @@ void Crystal::reactToObstruction()
 {
     return;
 }
+
+
 //---------------------------------------------------ALIVE BASECLASS---------------------------------------------------
 
 Alive::Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp)
@@ -365,6 +395,7 @@ void Avatar::doSomething()
             {
                 case KEY_PRESS_ESCAPE:
                     setDead();
+                    getWorld()->decLives();
                     break;
                 case KEY_PRESS_LEFT:
                     setDirection(left);
@@ -395,11 +426,26 @@ void Avatar::doSomething()
                     //    moveTo(getX(), getY()-1);
                     moveForward();
                     break;
+                case KEY_PRESS_SPACE:
+                    shootPea();
                 default:
                     break;
             }
         }
     }
+}
+
+void Avatar::shootPea(){
+    int x = getX();
+    int y = getY();
+    int dir = getDirection();
+    if(dir == right) x += 1;
+    else if(dir == left) x -= 1;
+    else if (dir == down) y -= 1;
+    else if(dir == up) y += 1;
+    getWorld()->addPea(x, y, dir);
+    getWorld()->playSound(SOUND_PLAYER_FIRE);
+    m_peaCount--;
 }
 
 int Avatar::getHealth()
@@ -429,8 +475,26 @@ void Avatar::playDamageSoundEffect()
 
 void Avatar::reactToObstruction()
 {
-    return;
+    int dir = getDirection();
+    if(dir == right && getWorld()->actorAt(getX() + 1, getY())->isMarble()){
+        getWorld()->actorAt(getX()+1, getY())->moveForward();
+        moveTo(getX()+1, getY());
+    }
+    else if(dir == left && getWorld()->actorAt(getX() - 1, getY())->isMarble()){
+        getWorld()->actorAt(getX()-1, getY())->moveForward();
+        moveTo(getX()-1, getY());
+    }
+    else if(dir == up && getWorld()->actorAt(getX(), getY() + 1)->isMarble()){
+        getWorld()->actorAt(getX(), getY() + 1)->moveForward();
+        moveTo(getX(), getY() + 1);
+    }
+    else if(dir == down && getWorld()->actorAt(getX(), getY() - 1)->isMarble()){
+        getWorld()->actorAt(getX(), getY() - 1)->moveForward();
+        moveTo(getX(), getY() - 1);
+    }
 }
+
+
 //---------------------------------------------------MARBLE---------------------------------------------------
 
 Marble::Marble(StudentWorld* sw, double x, double y) : Alive(sw, IID_MARBLE, x, y, none, 10) { }
@@ -447,10 +511,6 @@ bool Marble::blocksMovement()
     return true;
 }
 
-void Marble::getPushed()
-{
-    
-}
 
 void Marble::playDeadSoundEffect()
 {
@@ -469,8 +529,22 @@ bool Marble::isMarble()
 
 void Marble::reactToObstruction()
 {
-    return;
+    int dir = getDirection();
+    //check that there also isn't a goodie that would be blocking the marbles way
+    if(dir == right && getWorld()->actorAt(getX() + 1, getY())->isPit() && !getWorld()->actorNotBlockingAt(getX() + 1, getY())){
+        moveTo(getX()+1, getY());
+    }
+    else if(dir == left && getWorld()->actorAt(getX() - 1, getY())->isPit() && !getWorld()->actorNotBlockingAt(getX() - 1, getY())){
+        moveTo(getX()-1, getY());
+    }
+    else if(dir == up && getWorld()->actorAt(getX(), getY() + 1)->isPit()  && !getWorld()->actorNotBlockingAt(getX(), getY() + 1)){
+        moveTo(getX(), getY() + 1);
+    }
+    else if(dir == down && getWorld()->actorAt(getX(), getY() - 1)->isPit() && !getWorld()->actorNotBlockingAt(getX(), getY() -1)){
+        moveTo(getX(), getY() - 1);
+    }
 }
+
 
 //---------------------------------------------------RAGEBOTS---------------------------------------------------
 RageBot::RageBot(StudentWorld* sw, double x, double y, int dir) : Alive(sw, IID_RAGEBOT, x, y, dir, 10)
@@ -522,12 +596,11 @@ bool RageBot::inRange(){
 
 bool RageBot::cantShoot()
 {
-    
     if(getDirection() == right)
     {
         for(double x = getX() + 1; x < getWorld()->getAvatar()->getX(); x++)
         {
-            if(getWorld()->isBlockingAt(x, getY()))
+            if(getWorld()->actorIsBlockingAt(x, getY()))
             {
                 return true;
             }
@@ -537,7 +610,7 @@ bool RageBot::cantShoot()
     {
         for(double x = getWorld()->getAvatar()->getX() + 1; x < getX(); x++)
         {
-            if(getWorld()->isBlockingAt(x, getY()))
+            if(getWorld()->actorIsBlockingAt(x, getY()))
             {
                 return true;
             }
@@ -547,7 +620,7 @@ bool RageBot::cantShoot()
     {
         for(double y = getY() + 1; y < getWorld()->getAvatar()->getY(); y++)
         {
-            if(getWorld()->isBlockingAt(getX(), y))
+            if(getWorld()->actorIsBlockingAt(getX(), y))
             {
                 return true;
             }
@@ -557,7 +630,7 @@ bool RageBot::cantShoot()
     {
         for(double y = getWorld()->getAvatar()->getY() + 1; y < getY(); y++)
         {
-            if(getWorld()->isBlockingAt(getX(), y))
+            if(getWorld()->actorIsBlockingAt(getX(), y))
             {
                 return true;
             }
@@ -572,10 +645,10 @@ void RageBot::shootPea(){
     int x = getX();
     int y = getY();
     int dir = getDirection();
-    if(dir == right)  x += 1;
-    else if(dir == left)  x -= 1;
-    else if(dir == up)  y += 1;
-    else if(dir == down) y -= 1;
+    if(dir == right) x += 1;
+    else if(dir == left) x -= 1;
+    else if (dir == down) y -= 1;
+    else if(dir == up) y += 1;
     getWorld()->addPea(x, y, dir);
     getWorld()->playSound(SOUND_ENEMY_FIRE);
 }
@@ -633,6 +706,7 @@ void RageBot::playDamageSoundEffect()
 { 
     getWorld()->playSound(SOUND_ROBOT_IMPACT);
 }
+
 
 //---------------------------------------------------THIEFBOTS---------------------------------------------------
 
