@@ -95,20 +95,19 @@ int StudentWorld::move()
 {
     setDisplayText();
     
-    m_avatar -> doSomething();
 
     list<Actor*>::iterator it;
     for(it = m_actors.begin(); it != m_actors.end(); it++){
         if((*it)->isActive())
         {
             (*it) -> doSomething();
-            if(!getAvatar()->isActive())
+            if(!m_avatar->isActive())
                 return GWSTATUS_PLAYER_DIED;
             //TODO: IMPLEMENT IF PLAYER COMPLETES LEVEL
         }
     }
+    m_avatar -> doSomething();
 
-    
     removeDeadGameObjects();
     
     if(bonusPts > 0) bonusPts--;
@@ -132,15 +131,15 @@ void StudentWorld::cleanUp()
 }
 
 //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
-
+/*
 Avatar* StudentWorld::getAvatar()
 {
     return m_avatar;
 }
-
+*/
 bool StudentWorld::actorIsBlockingAt(double x, double y)
 {
-    list<Actor*>::iterator it;
+     list<Actor*>::iterator it;
     if(m_avatar->getX() == x && m_avatar->getY() == y) 
         return true;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
@@ -177,7 +176,7 @@ Actor* StudentWorld::actorAt(double x, double y)
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
         if((*it)->getX() == x && (*it)->getY() == y ){
-            //if((*it)->blocksMovement())
+            if((*it)->blocksMovement())
                 return *it;
         }
     }
@@ -237,3 +236,9 @@ void StudentWorld::setDisplayText()
     // Finally, update the display text at the top of the screen with your // newly created stats
     setGameStatText(s); // calls our provided GameWorld::setGameStatText
 }
+
+double StudentWorld::getAvatarX() { return m_avatar -> getX(); }
+double StudentWorld::getAvatarY() { return m_avatar -> getY(); }
+
+void StudentWorld::restorePlayerHealth() { m_avatar->restoreHealth(); }
+void StudentWorld::restorePlayerPeas() { m_avatar-> restorePeas(); }

@@ -29,7 +29,7 @@ void Actor::setActiveState(bool active)
 {
     m_isActive = active;
 }
-
+/*
 bool Actor::isWall() const
 {
     return false;
@@ -59,7 +59,7 @@ bool Actor::isPit() const
 {
     return false;
 }
-
+*/
 void Actor::takeDamage(int damage) { return; }
 
 
@@ -108,27 +108,24 @@ Wall::Wall(StudentWorld* sw, double x, double y) : Actor(sw, IID_WALL, x, y, non
 
 Wall::~Wall(){}
 
-void Wall::doSomething() 
-{
-    return;
-}
+void Wall::doSomething() { return; }
+bool Wall::blocksMovement() { return true; }
 
-bool Wall::blocksMovement()
-{
-    return true;
-}
+/*
+bool Wall::isWall() const { return true; }
+bool Wall::isFactory() const { return false; }
+bool Wall::isAvatar() const { return false; }
+bool Wall::isRobot() const { return false; }
+bool Wall::isMarble() const { return false; }
+bool Wall::isPit() const { return false; }
+ */
 
-bool Wall::isWall() const
-{
-    return true;
-}
+void Wall::reactToObstruction() { return; }
 
-void Wall::reactToObstruction()
-{
-    return;
-}
+bool Wall::isMarble() const { return false; }
+bool Wall::isPit() const { return false; }
 
-
+bool Wall::canTakeDamage() { return false;}
 
 //---------------------------------------------------PIT---------------------------------------------------
 
@@ -138,6 +135,8 @@ Pit::~Pit() { }
 
 void Pit::doSomething()
 {
+    return;
+    
     if(!isActive())
         return;
     if(getWorld()->actorAt(getX(), getY())->isMarble())
@@ -145,11 +144,22 @@ void Pit::doSomething()
         setActiveState(false);
         getWorld()->actorAt(getX(), getY())->setActiveState(false);
     }
+     
 }
 
 bool Pit::blocksMovement() { return true; }
 
+/*
 bool Pit::isPit() const { return true; }
+bool Pit::isWall() const { return false; }
+bool Pit::isFactory() const { return false; }
+bool Pit::isAvatar() const { return false; }
+bool Pit::isRobot() const { return false; }
+bool Pit::isMarble() const { return false; }
+*/
+bool Pit::isMarble() const { return false; }
+bool Pit::isPit() const { return true; }
+bool Pit::canTakeDamage() { return false; }
 
 void Pit::reactToObstruction() { return; }
 
@@ -166,47 +176,71 @@ bool Pea::blocksMovement()
 
 void Pea::reactToObstruction()
 {
+    if(getDirection() == right)
+    {
+        moveTo(getX()+1, getY());
+    }
+    else if(getDirection() == left)
+    {
+        moveTo(getX()-1, getY());
+    }
+    else if(getDirection() == up)
+    {
+        moveTo(getX(), getY()+1);
+    }
+    else if(getDirection() == down)
+    {
+       moveTo(getX(), getY()-1);
+    }
     setActiveState(false);
 }
 
+//ONLY SHOWS THE PEA BEING SHOT WHEN THE ACTOR'S TWO STEPS AWAy
 void Pea::doSomething()
 {
-    
-     /*NOT WORKING IDK WHY
-     
-   // moveForward();
     if(!isActive()) return;
-    if(getWorld()->actorIsAt(getX(), getY()))
+    
+    if(getWorld()->actorIsBlockingAt(getX(), getY()))
     {
-    Actor* actor = getWorld()->actorAt(getX(), getY()); --> dont think this is working
-    //NOT ENTERING IN THIS IF STATEMENT I DONT KNOW WHY
-        if(actor->isRobot() || actor->isAvatar() || actor->isMarble())
+ 
+    Actor* actor = getWorld()->actorAt(getX(), getY());
+        if(actor->canTakeDamage())
         {
             actor->takeDamage(2);
             setActiveState(false);
         }
-        else if(actor->isWall() || actor->isFactory())
+        else if(!actor->canTakeDamage())
             setActiveState(false);
     }
     
     moveForward();
-    
-    if(getWorld()->actorIsAt(getX(), getY()))
+
+    if(getWorld()->actorIsBlockingAt(getX(), getY()))
     {
         Actor* actor = getWorld()->actorAt(getX(), getY());
-        if(actor->isRobot() || actor->isAvatar() || actor->isMarble())
+        if(actor->canTakeDamage())
         {
             actor->takeDamage(2);
             setActiveState(false);
         }
         
-        else if(actor->isWall() || actor->isFactory())
+        else if(!actor->canTakeDamage())
             setActiveState(false);
     }
      
-    */
+    
 }
-
+/*
+bool Pea::isWall() const { return false; }
+bool Pea::isFactory() const { return false; }
+bool Pea::isAvatar() const { return false; }
+bool Pea::isRobot() const { return false; }
+bool Pea::isMarble() const { return false; }
+bool Pea::isPit() const { return false; }
+*/
+bool Pea::isPit() const { return false; }
+bool Pea::isMarble() const { return false; }
+bool Pea::canTakeDamage() { return false; }
 
 //---------------------------------------------------GOODIES---------------------------------------------------
 
@@ -227,8 +261,7 @@ void ExtraLifeGoodie::reactToObstruction()
 
 void ExtraLifeGoodie::doSomething(){
     if(!isActive()) return;
-    Avatar* player = getWorld()->getAvatar();
-    if(player->getX() == getX() && player->getY() == getY())
+    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->increaseScore(1000);
@@ -237,9 +270,40 @@ void ExtraLifeGoodie::doSomething(){
     }
     
 }
+/*
+bool ExtraLifeGoodie::isWall() const
+{
+    return false;
+}
 
+bool ExtraLifeGoodie::isFactory() const
+{
+    return false;
+}
 
+bool ExtraLifeGoodie::isAvatar() const
+{
+    return false;
+}
 
+bool ExtraLifeGoodie::isRobot() const
+{
+    return false;
+}
+
+bool ExtraLifeGoodie::isMarble() const
+{
+    return false;
+}
+
+bool ExtraLifeGoodie::isPit() const
+{
+    return false;
+}
+*/
+bool ExtraLifeGoodie::isMarble() const { return false; }
+bool ExtraLifeGoodie::isPit() const { return false; }
+bool ExtraLifeGoodie::canTakeDamage() { return false;}
 //---------------------------------------------------RESTORE HEALTH GOODIE-----------------------------------------------
 
 RestoreHealthGoodie::RestoreHealthGoodie(StudentWorld* sw, double x, double y) : Actor(sw, IID_RESTORE_HEALTH, x, y, none, true) { }
@@ -247,16 +311,18 @@ RestoreHealthGoodie::~RestoreHealthGoodie() { }
 void RestoreHealthGoodie::doSomething()
 {
     if(!isActive()) return;
-    Avatar* player = getWorld()->getAvatar();
-    if(player->getX() == getX() && player->getY() == getY())
+    //Avatar* player = getWorld()->getAvatar();
+    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->increaseScore(500);
-        player->restoreHealth();
+        getWorld()->restorePlayerHealth();
+       // player->restoreHealth();
         setActiveState(false);
     }
     
 }
+
 bool RestoreHealthGoodie::blocksMovement()
 {
     return false;
@@ -266,7 +332,40 @@ void RestoreHealthGoodie::reactToObstruction()
 {
     return;
 }
+/*
+bool RestoreHealthGoodie::isWall() const
+{
+    return false;
+}
 
+bool RestoreHealthGoodie::isFactory() const
+{
+    return false;
+}
+
+bool RestoreHealthGoodie::isAvatar() const
+{
+    return false;
+}
+
+bool RestoreHealthGoodie::isRobot() const
+{
+    return false;
+}
+
+bool RestoreHealthGoodie::isMarble() const
+{
+    return false;
+}
+
+bool RestoreHealthGoodie::isPit() const
+{
+    return false;
+}
+ */
+bool RestoreHealthGoodie::isMarble() const { return false; }
+bool RestoreHealthGoodie::isPit() const { return false; }
+bool RestoreHealthGoodie::canTakeDamage() { return false;}
 
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
 
@@ -276,12 +375,13 @@ AmmoGoodie::~AmmoGoodie() {}
 void AmmoGoodie::doSomething()
 {
     if(!isActive()) return;
-    Avatar* player = getWorld()->getAvatar();
-    if(player->getX() == getX() && player->getY() == getY())
+    //Avatar* player = getWorld()->getAvatar();
+    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->increaseScore(100);
-        player->restorePeas();
+        //player->restorePeas();
+        getWorld()->restorePlayerPeas();
         setActiveState(false);
     }
     
@@ -295,7 +395,40 @@ void AmmoGoodie::reactToObstruction()
 {
     return;
 }
+/*
+bool AmmoGoodie::isWall() const
+{
+    return false;
+}
 
+bool AmmoGoodie::isFactory() const
+{
+    return false;
+}
+
+bool AmmoGoodie::isAvatar() const
+{
+    return false;
+}
+
+bool AmmoGoodie::isRobot() const
+{
+    return false;
+}
+
+bool AmmoGoodie::isMarble() const
+{
+    return false;
+}
+
+bool AmmoGoodie::isPit() const
+{
+    return false;
+}
+ */
+bool AmmoGoodie::isMarble() const { return false; }
+bool AmmoGoodie::isPit() const { return false; }
+bool AmmoGoodie::canTakeDamage() { return false;}
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
 
@@ -311,8 +444,8 @@ bool Crystal::blocksMovement()
 void Crystal::doSomething()
 {
     if(!isActive()) return;
-    Avatar* player = getWorld()->getAvatar();
-    if(player->getX() == getX() && player->getY() == getY())
+    //Avatar* player = getWorld()->getAvatar();
+    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->increaseScore(50);
@@ -324,7 +457,40 @@ void Crystal::reactToObstruction()
 {
     return;
 }
+/*
+bool Crystal::isWall() const
+{
+    return false;
+}
 
+bool Crystal::isFactory() const
+{
+    return false;
+}
+
+bool Crystal::isAvatar() const
+{
+    return false;
+}
+
+bool Crystal::isRobot() const
+{
+    return false;
+}
+
+bool Crystal::isMarble() const
+{
+    return false;
+}
+
+bool Crystal::isPit() const
+{
+    return false;
+}
+ */
+bool Crystal::isMarble() const { return false; }
+bool Crystal::isPit() const { return false; }
+bool Crystal::canTakeDamage() { return false;}
 
 //---------------------------------------------------ALIVE BASECLASS---------------------------------------------------
 
@@ -457,11 +623,39 @@ int Avatar::getAmmo()
 {
     return m_peaCount;
 }
-       
-bool Avatar::isAvatar()
+       /*
+bool Avatar::isAvatar() const
 {
     return true;
 }
+bool Avatar::isWall() const
+{
+    return false;
+}
+
+bool Avatar::isFactory() const
+{
+    return false;
+}
+
+bool Avatar::isRobot() const
+{
+    return false;
+}
+
+bool Avatar::isMarble() const
+{
+    return false;
+}
+
+bool Avatar::isPit() const
+{
+    return false;
+}
+*/
+bool Avatar::isMarble() const { return false; }
+bool Avatar::isPit() const { return false; }
+bool Avatar::canTakeDamage() { return true;}
 
 void Avatar::playDeadSoundEffect()
 {
@@ -521,12 +715,40 @@ void Marble::playDamageSoundEffect()
 {
     return;
 }
-
-bool Marble::isMarble()
+bool Marble::isMarble() const { return true; }
+bool Marble::isPit() const { return false; }
+bool Marble::canTakeDamage() { return true;}
+/*
+bool Marble::isMarble() const
 {
     return true;
 }
 
+bool Marble::isWall() const
+{
+    return false;
+}
+
+bool Marble::isFactory() const
+{
+    return false;
+}
+
+bool Marble::isAvatar() const
+{
+    return false;
+}
+
+bool Marble::isRobot() const
+{
+    return false;
+}
+
+bool Marble::isPit() const
+{
+    return false;
+}
+*/
 void Marble::reactToObstruction()
 {
     int dir = getDirection();
@@ -565,8 +787,8 @@ int RageBot::tickRest() {
 }
 
 bool RageBot::facingPlayer(){
-    double playerX = getWorld()->getAvatar()->getX();
-    double playerY = getWorld()->getAvatar()->getY();
+    double playerX = getWorld()->getAvatarX();
+    double playerY = getWorld()->getAvatarY();
     if(getDirection() == right && playerX > getX()){
         return true;
     }
@@ -583,8 +805,8 @@ bool RageBot::facingPlayer(){
 }
 
 bool RageBot::inRange(){
-    double playerX = getWorld()->getAvatar()->getX();
-    double playerY = getWorld()->getAvatar()->getY();
+    double playerX = getWorld()->getAvatarX();
+    double playerY = getWorld()->getAvatarY();
     if(getDirection() == right || getDirection() == left){
         if(getY() == playerY) { return true;}
     }
@@ -598,7 +820,7 @@ bool RageBot::cantShoot()
 {
     if(getDirection() == right)
     {
-        for(double x = getX() + 1; x < getWorld()->getAvatar()->getX(); x++)
+        for(double x = getX() + 1; x < getWorld()->getAvatarX(); x++)
         {
             if(getWorld()->actorIsBlockingAt(x, getY()))
             {
@@ -608,7 +830,7 @@ bool RageBot::cantShoot()
     }
     else if(getDirection() == left)
     {
-        for(double x = getWorld()->getAvatar()->getX() + 1; x < getX(); x++)
+        for(double x = getWorld()->getAvatarX() + 1; x < getX(); x++)
         {
             if(getWorld()->actorIsBlockingAt(x, getY()))
             {
@@ -618,7 +840,7 @@ bool RageBot::cantShoot()
     }
     else if(getDirection() == up)
     {
-        for(double y = getY() + 1; y < getWorld()->getAvatar()->getY(); y++)
+        for(double y = getY() + 1; y < getWorld()->getAvatarY(); y++)
         {
             if(getWorld()->actorIsBlockingAt(getX(), y))
             {
@@ -628,7 +850,7 @@ bool RageBot::cantShoot()
     }
     else if(getDirection() == down)
     {
-        for(double y = getWorld()->getAvatar()->getY() + 1; y < getY(); y++)
+        for(double y = getWorld()->getAvatarY() + 1; y < getY(); y++)
         {
             if(getWorld()->actorIsBlockingAt(getX(), y))
             {
@@ -678,12 +900,42 @@ void RageBot::doSomething()
         }
     }
 }
+bool RageBot::isMarble() const { return false; }
+bool RageBot::isPit() const { return false; }
 
-bool RageBot::isRobot()
+bool RageBot::canTakeDamage() { return true; }
+
+/*
+bool RageBot::isRobot() const
 {
     return true;
 }
 
+bool RageBot::isWall() const
+{
+    return false;
+}
+
+bool RageBot::isFactory() const
+{
+    return false;
+}
+
+bool RageBot::isAvatar() const
+{
+    return false;
+}
+
+bool RageBot::isMarble() const
+{
+    return false;
+}
+
+bool RageBot::isPit() const
+{
+    return false;
+}
+*/
 void RageBot::reactToObstruction()
 {
     if(getDirection() == right)

@@ -26,7 +26,7 @@ public:
 
     bool actorIsBlockingAt(double x, double y);
     bool actorNotBlockingAt(double x, double y); //returns if there is an actor that exists but isn't blockign the road
-    Avatar* getAvatar();
+    //Avatar* getAvatar();
     std::list<Actor*>& getActors();
     Actor* actorAt(double x, double y);
     void removeDeadGameObjects();
@@ -35,6 +35,10 @@ public:
     void setDisplayText();
     void addPea(int x, int y, int dir);
 
+    double getAvatarX();
+    double getAvatarY();
+    void restorePlayerHealth();
+    void restorePlayerPeas();
     
 private:
     Avatar* m_avatar;

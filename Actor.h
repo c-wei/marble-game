@@ -26,12 +26,18 @@ public:
     virtual void doSomething() = 0;
     virtual bool blocksMovement() = 0;
     
-    virtual bool isWall() const;
-    virtual bool isFactory() const;
-    virtual bool isAvatar() const;
-    virtual bool isRobot() const;
-    virtual bool isMarble() const;
-    virtual bool isPit() const;
+    /*
+    virtual bool isWall() const = 0;
+    virtual bool isFactory() const = 0;
+    virtual bool isAvatar() const = 0;
+    virtual bool isRobot() const = 0;
+    virtual bool isMarble() const = 0;
+    virtual bool isPit() const = 0;
+    */
+    virtual bool isPit() const = 0;
+    virtual bool isMarble() const = 0;
+
+    virtual bool canTakeDamage() = 0;
     
     virtual void takeDamage(int damage);
     void moveForward();
@@ -54,10 +60,21 @@ public:
     Wall(StudentWorld* sw, double x, double y);
     virtual ~Wall();
     
+    
     virtual void doSomething();
     virtual bool blocksMovement();
+    /*
     virtual bool isWall() const;
-    
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+    */
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
+
+    virtual bool canTakeDamage();
 
 private:
     virtual void reactToObstruction();
@@ -70,10 +87,21 @@ public:
     Pit(StudentWorld* sw, double x, double y);
     virtual ~Pit();
     
+    
     virtual void doSomething();
     virtual bool blocksMovement();
+    /*
     virtual bool isPit() const;
-    
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    */
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
+
+    virtual bool canTakeDamage();
 private:
     virtual void reactToObstruction();
 };
@@ -86,9 +114,21 @@ public:
     Pea(StudentWorld* sw, double x, double y, int dir);
     virtual ~Pea();
     
+    
     virtual void doSomething();                    //continutes moving until it hits smth and possibly makes damage
     virtual bool blocksMovement();                     //doesn't obstruct movement
+    /*
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+*/
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
 
 private:
     virtual void reactToObstruction();
@@ -104,7 +144,19 @@ public:
     virtual ~ExtraLifeGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+    
+    /*
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+*/
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
 private:
     virtual void reactToObstruction();
 };
@@ -118,7 +170,20 @@ public:
     virtual ~RestoreHealthGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+    
+    /*
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+*/
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
+     
 private:
     virtual void reactToObstruction();
 };
@@ -132,7 +197,20 @@ public:
     virtual ~AmmoGoodie();
     virtual void doSomething();
     virtual bool blocksMovement();
+    
+    /*
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
 
+     */
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
+
+    virtual bool canTakeDamage();
 private:
     virtual void reactToObstruction();
 };
@@ -147,7 +225,18 @@ public:
     
     virtual void doSomething();
     virtual bool blocksMovement();
+    /*
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+*/
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
 private:
     virtual void reactToObstruction();
 
@@ -166,6 +255,7 @@ public:
     bool isAlive();
     void setDead();
     int getHP();
+
 
 private:
     virtual void playDamageSoundEffect() = 0;
@@ -187,7 +277,20 @@ public:
     void restorePeas();
     int getHealth();
     int getAmmo();
-    virtual bool isAvatar();
+    
+    /*
+    virtual bool isAvatar() const;
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+     
+     */
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
+
+    virtual bool canTakeDamage();
     void shootPea();
 
 private:
@@ -212,8 +315,19 @@ public:
     virtual bool blocksMovement(); //obstructs movement
     
     void getPushed(); //move the marble if it's pushed
-    virtual bool isMarble();
+    
+    /*
+    virtual bool isMarble() const;
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isPit() const;
+     */
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
@@ -246,8 +360,18 @@ public:
     
     void doSomething();
     
-    virtual bool isRobot();
+    /*
+    virtual bool isRobot() const;
+    virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isMarble() const;
+    virtual bool isPit() const;
+*/
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
 
+    virtual bool canTakeDamage();
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
