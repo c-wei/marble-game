@@ -27,8 +27,12 @@ public:
     virtual bool blocksMovement() = 0;
     
     virtual bool isWall() const;
+    virtual bool isFactory() const;
+    virtual bool isAvatar() const;
+    virtual bool isRobot() const;
+    virtual bool isMarble() const;
+    
     virtual void takeDamage(int damage);
-    virtual void damageEffect();
     bool existingObstacle(double x, double y);
     void moveForward();
 
@@ -36,6 +40,7 @@ public:
 private:
     StudentWorld* m_world;
     bool m_isActive;
+    virtual void reactToObstruction() = 0;
 };
 
 //---------------------------------------------------NON-ALIVE---------------------------------------------------
@@ -53,7 +58,7 @@ public:
     virtual bool isWall() const;
     
 private:
-
+    virtual void reactToObstruction();
 };
 
 //---------------------------------------------------PEA---------------------------------------------------
@@ -69,7 +74,7 @@ public:
 
     
 private:
-    
+    virtual void reactToObstruction();
 };
 
 //---------------------------------------------------GOODIES---------------------------------------------------
@@ -84,7 +89,7 @@ public:
     virtual bool blocksMovement();
 
 private:
-
+    virtual void reactToObstruction();
 };
 
 //---------------------------------------------------RESTORE HEALTH---------------------------------------------------
@@ -98,7 +103,7 @@ public:
     virtual bool blocksMovement();
     
 private:
-    
+    virtual void reactToObstruction();
 };
 
 //---------------------------------------------------AMMO---------------------------------------------------
@@ -112,7 +117,7 @@ public:
     virtual bool blocksMovement();
 
 private:
-    
+    virtual void reactToObstruction();
 };
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
@@ -125,6 +130,8 @@ public:
     
     virtual void doSomething();
     virtual bool blocksMovement();
+private:
+    virtual void reactToObstruction();
 
 };
 //---------------------------------------------------ALL THINGS ALIVE---------------------------------------------------
@@ -136,11 +143,10 @@ class Alive : public Actor
 public:
     Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp);
     virtual ~Alive();
-    virtual void takeDamage(int damage);
+    void takeDamage(int damage);
     void restoreHealth();
     bool isAlive();
     void setDead();
-    virtual void damageEffect();
     int getHP();
 
 
@@ -164,11 +170,14 @@ public:
     void restorePeas();
     int getHealth();
     int getAmmo();
+    virtual bool isAvatar();
         
 private:
     int m_peaCount;
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
+    virtual void reactToObstruction();
+
 
 };
 
@@ -185,10 +194,13 @@ public:
     virtual bool blocksMovement(); //obstructs movement
     
     void getPushed(); //move the marble if it's pushed
+    virtual bool isMarble();
     
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
+    virtual void reactToObstruction();
+
 };
 
 //---------------------------------------------------RAGEBOTS---------------------------------------------------
@@ -216,9 +228,13 @@ public:
     
     void doSomething();
     
+    virtual bool isRobot();
+    
 private:
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
+    virtual void reactToObstruction();
+
     int numTicks;
 };
 

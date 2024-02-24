@@ -49,6 +49,9 @@ int StudentWorld::init()
                 Level::MazeEntry ge = lev.getContentsOf(x,y);
                 switch (ge)
                 {
+                        
+                        //CHECK FOR EXIT AT THE VERY BEGINNING OF THE LIST AND THEN RETRIEVE EXIT BY RETRIEVING FIRST LIST ITEM
+                        
                     case Level::player:
                         m_avatar = new Avatar(this, x, y);
                         break;
@@ -87,12 +90,10 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    // This code is here merely to allow the game to build, run, and terminate after you type q
-
-    //setGameStatText("Game will end when you type q");
     setDisplayText();
     
     m_avatar -> doSomething();
+
     list<Actor*>::iterator it;
     for(it = m_actors.begin(); it != m_actors.end(); it++){
         if((*it)->isActive())
@@ -103,6 +104,7 @@ int StudentWorld::move()
             //TODO: IMPLEMENT IF PLAYER COMPLETES LEVEL
         }
     }
+
     
     removeDeadGameObjects();
     
@@ -111,7 +113,7 @@ int StudentWorld::move()
     //TODO: EXPOSE EXIT ONCE EVERYTHING COMPLETED
     
     //TODO: UPDATE STATUS
-    
+
 	return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -127,11 +129,6 @@ void StudentWorld::cleanUp()
 }
 
 //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
-
-list<Actor*>& StudentWorld::getActors()
-{
-    return m_actors;
-}
 
 Avatar* StudentWorld::getAvatar()
 {
@@ -152,7 +149,28 @@ bool StudentWorld::isBlockingAt(double x, double y)
         }
         else ;
     }
+     
     return false;
+}
+
+Actor* StudentWorld::actorAt(double x, double y)
+{
+    list<Actor*>::iterator it;
+    if(m_avatar->getX()  == x && m_avatar->getY() == y)
+        return m_avatar;
+    for(it = m_actors.begin(); it != m_actors.end(); it++)
+    {
+        if((*it)->getX() == x && (*it)->getY() == y && (*it)->blocksMovement())
+            return *it;
+    }
+    return *m_actors.end();
+}
+
+bool StudentWorld::actorIsAt(Actor* actor, double x, double y)
+{
+    if(actorAt(x, y) != *(m_actors.end()))
+        return true;
+    else return false;
 }
 
 void StudentWorld::removeDeadGameObjects()
@@ -169,17 +187,9 @@ void StudentWorld::removeDeadGameObjects()
     }
 }
 
-Actor* StudentWorld::actorAt(double x, double y)
+void StudentWorld::addPea(int x, int y, int dir)
 {
-    list<Actor*>::iterator it;
-    if(m_avatar->getX()  == x && m_avatar->getY() == y) 
-        return m_avatar;
-    for(it = m_actors.begin(); it != m_actors.end(); it++)
-    {
-        if((*it)->getX() == x && (*it)->getY() && (*it)->blocksMovement())
-            return *it;
-    }
-    return *m_actors.end();
+    m_actors.push_back(new Pea(this, x, y, dir));
 }
 
 int StudentWorld::getBonus()

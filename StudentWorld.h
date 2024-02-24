@@ -32,6 +32,8 @@ public:
     int getBonus();
     std::string format(int score, int level, int lives, int health, int ammo, int bonus);
     void setDisplayText();
+    bool actorIsAt(Actor* actor, double x, double y);
+    void addPea(int x, int y, int dir);
 
     
 private:
