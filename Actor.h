@@ -29,11 +29,13 @@ public:
     virtual bool isMarble() const = 0;
     virtual bool blocksMovement() const = 0;
     virtual bool canTakeDamage() const = 0;
+    virtual bool takesPeaDamage() const = 0;
    
 private:
     StudentWorld* m_world;
     bool m_isActive;
-    virtual void reactToObstruction() = 0;
+    virtual void reactToObstruction();
+    virtual bool noObstructionExists(double x, double y);
 };
 
 //---------------------------------------------------NON-ALIVE---------------------------------------------------
@@ -51,9 +53,10 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
+    virtual bool takesPeaDamage() const;
     
 private:
-    virtual void reactToObstruction();
+    
 };
 //---------------------------------------------------PIT---------------------------------------------------
 
@@ -68,8 +71,10 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
+    virtual bool takesPeaDamage() const;
+    
 private:
-    virtual void reactToObstruction();
+    
 };
 
 //---------------------------------------------------PEA---------------------------------------------------
@@ -87,8 +92,11 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
+    virtual bool takesPeaDamage() const;
+
 private:
     virtual void reactToObstruction();
+    virtual bool noObstructionExists(double x, double y);
 };
 
 //---------------------------------------------------GOODIES---------------------------------------------------
@@ -106,9 +114,10 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
-
+    virtual bool takesPeaDamage() const;
+    
 private:
-    virtual void reactToObstruction();
+    
 };
 
 //---------------------------------------------------RESTORE HEALTH---------------------------------------------------
@@ -125,9 +134,10 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
-
+    virtual bool takesPeaDamage() const;
+    
 private:
-    virtual void reactToObstruction();
+    
 };
 
 //---------------------------------------------------AMMO---------------------------------------------------
@@ -144,9 +154,10 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
-
+    virtual bool takesPeaDamage() const;
+    
 private:
-    virtual void reactToObstruction();
+    
 };
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
@@ -163,9 +174,9 @@ public:
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
     virtual bool isMarble() const;
+    virtual bool takesPeaDamage() const;
 
 private:
-    virtual void reactToObstruction();
 
 };
 //---------------------------------------------------ALL THINGS ALIVE---------------------------------------------------
@@ -187,6 +198,7 @@ public:
     //setters
     void setDead();
     void setHP(int newHP);
+    virtual bool takesPeaDamage() const;
     
 private:
     virtual void playDamageSoundEffect() = 0;
@@ -280,6 +292,33 @@ private:
     virtual void reactToObstruction();
 
     int numTicks;
+};
+
+//---------------------------------------------------THIEFBOT FACTOR---------------------------------------------------
+
+class ThiefBotFactory : public Actor
+{
+public:
+    ThiefBotFactory(StudentWorld* sw, int imageID, double x, double y, int dir, bool vis, int type);
+    virtual ~ThiefBotFactory();
+    
+    StudentWorld* getWorld() const;
+    bool isActive();
+    void setActiveState(bool active);
+    virtual void takeDamage(int damage);
+
+    void moveForward();
+
+    virtual void doSomething() = 0;
+    virtual bool isPit() const = 0;
+    virtual bool isMarble() const = 0;
+    virtual bool blocksMovement() const = 0;
+    virtual bool canTakeDamage() const = 0;
+   
+private:
+    StudentWorld* m_world;
+    bool m_isActive;
+    virtual void reactToObstruction() = 0;
 };
 
 //---------------------------------------------------THIEFBOTS---------------------------------------------------

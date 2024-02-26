@@ -18,40 +18,40 @@ StudentWorld* Actor:: getWorld() const { return m_world; }
 bool Actor::isActive() { return m_isActive; }
 void Actor::setActiveState(bool active) { m_isActive = active; }
 void Actor::takeDamage(int damage) { return; }
+void Actor::reactToObstruction() { return; }
+bool Actor::noObstructionExists(double x, double y) {
+    return !(getWorld()->actorIsBlockingAtXY(x, y));
+}
 
 
 void Actor::moveForward(){
     if(getDirection() == right)
     {
-        if(!(getWorld()->actorIsBlockingAtXY(getX()+1, getY())))
+        if(noObstructionExists(getX()+1, getY()))
             moveTo(getX()+1, getY());
         else
-            //setDirection(left);
             reactToObstruction();
     }
     else if(getDirection() == left)
     {
-        if(!(getWorld()->actorIsBlockingAtXY(getX()-1, getY())))
+        if(noObstructionExists(getX()-1, getY()))
             moveTo(getX()-1, getY());
         else
-            //setDirection(right);
             reactToObstruction();
     }
     
     else if(getDirection() == up)
     {
-        if(!(getWorld()->actorIsBlockingAtXY(getX(), getY()+1)))
+        if(noObstructionExists(getX(), getY()+1))
             moveTo(getX(), getY()+1);
         else
-           // setDirection(down);
             reactToObstruction();
     }
     else if(getDirection() == down)
     {
-        if(!(getWorld()->actorIsBlockingAtXY(getX(), getY()-1)))
+        if(noObstructionExists(getX(), getY()-1))
             moveTo(getX(), getY()-1);
         else 
-            //setDirection(up);
             reactToObstruction();
         
     }
@@ -67,9 +67,9 @@ void Wall::doSomething() { return; }
 
 bool Wall::blocksMovement() const { return true; }
 bool Wall::canTakeDamage() const { return false;}
-void Wall::reactToObstruction() { return; }
 bool Wall::isMarble() const { return false; }
 bool Wall::isPit() const { return false; }
+bool Wall::takesPeaDamage() const { return true; }
 
 //---------------------------------------------------PIT---------------------------------------------------
 
@@ -92,7 +92,7 @@ bool Pit::blocksMovement() const { return true; }
 bool Pit::canTakeDamage() const { return false; }
 bool Pit::isMarble() const { return false; }
 bool Pit::isPit() const { return true; }
-void Pit::reactToObstruction() { return; }
+bool Pit::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------PEAS---------------------------------------------------
 
@@ -102,7 +102,7 @@ Pea::~Pea() { }
 //ONLY SHOWS THE PEA BEING SHOT WHEN THE ACTOR'S TWO STEPS AWAy
 void Pea::doSomething(){
     if(!isActive()) return;
-    if(getWorld()->actorIsBlockingAtXY(getX(), getY()))
+    if(getWorld()->actorAtXYTakesPeaDamage(getX(), getY()))
     {
     Actor* actor = getWorld()->actorAt(getX(), getY());
         if(actor->canTakeDamage())
@@ -114,7 +114,7 @@ void Pea::doSomething(){
             setActiveState(false);
     }
     moveForward();
-    if(getWorld()->actorIsBlockingAtXY(getX(), getY()))
+    if(getWorld()->actorAtXYTakesPeaDamage(getX(), getY()))
     {
         Actor* actor = getWorld()->actorAt(getX(), getY());
         if(actor->canTakeDamage())
@@ -147,10 +147,15 @@ void Pea::reactToObstruction(){
     setActiveState(false);
 }
 
+bool Pea::noObstructionExists(double x, double y){
+    return !getWorld()->actorAtXYTakesPeaDamage(x, y);
+}
+
 bool Pea::blocksMovement() const { return false; }
 bool Pea::canTakeDamage() const { return false; }
 bool Pea::isPit() const { return false; }
 bool Pea::isMarble() const { return false; }
+bool Pea::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------GOODIES---------------------------------------------------
 
@@ -170,12 +175,12 @@ void ExtraLifeGoodie::doSomething(){
         setActiveState(false);
     }
 }
-void ExtraLifeGoodie::reactToObstruction() { return; }
 
 bool ExtraLifeGoodie::blocksMovement() const { return false; }
 bool ExtraLifeGoodie::canTakeDamage() const { return false;}
 bool ExtraLifeGoodie::isMarble() const { return false; }
 bool ExtraLifeGoodie::isPit() const { return false; }
+bool ExtraLifeGoodie::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------RESTORE HEALTH GOODIE-----------------------------------------------
 
@@ -192,13 +197,12 @@ void RestoreHealthGoodie::doSomething(){
         setActiveState(false);
     }
 }
-void RestoreHealthGoodie::reactToObstruction() { return; }
 
 bool RestoreHealthGoodie::blocksMovement() const { return false; }
 bool RestoreHealthGoodie::canTakeDamage() const { return false;}
 bool RestoreHealthGoodie::isMarble() const { return false; }
 bool RestoreHealthGoodie::isPit() const { return false; }
-
+bool RestoreHealthGoodie::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
 
@@ -215,12 +219,12 @@ void AmmoGoodie::doSomething(){
         setActiveState(false);
     }
 }
-void AmmoGoodie::reactToObstruction() { return; }
 
 bool AmmoGoodie::blocksMovement() const { return false; }
 bool AmmoGoodie::canTakeDamage() const { return false;}
 bool AmmoGoodie::isMarble() const { return false; }
 bool AmmoGoodie::isPit() const { return false; }
+bool AmmoGoodie::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
 
@@ -236,12 +240,12 @@ void Crystal::doSomething(){
         setActiveState(false);
     }
 }
-void Crystal::reactToObstruction() { return; }
 
 bool Crystal::blocksMovement() const { return false; }
 bool Crystal::canTakeDamage() const { return false;}
 bool Crystal::isMarble() const { return false; }
 bool Crystal::isPit() const { return false; }
+bool Crystal::takesPeaDamage() const { return false; }
 
 //---------------------------------------------------ALIVE BASECLASS---------------------------------------------------
 
@@ -271,6 +275,8 @@ int Alive::getHP() const { return m_hp; }
 //setters
 void Alive::setHP(int newHP) { m_hp = newHP; }
 void Alive::setDead() { setActiveState(false); }
+
+bool Alive::takesPeaDamage() const { return true; }
 
 //---------------------------------------------------AVATAR---------------------------------------------------
 Avatar::Avatar(StudentWorld* sw, double x, double y) : Alive(sw, IID_PLAYER, x, y, right, 20), m_peaCount(20){ }
@@ -580,6 +586,9 @@ bool RageBot::isPit() const { return false; }
 
 void RageBot::playDeadSoundEffect() { getWorld()->playSound(SOUND_ROBOT_DIE); }
 void RageBot::playDamageSoundEffect() { getWorld()->playSound(SOUND_ROBOT_IMPACT); }
+
+
+//---------------------------------------------------THIEFBOT FACTOR---------------------------------------------------
 
 //---------------------------------------------------THIEFBOTS---------------------------------------------------
 

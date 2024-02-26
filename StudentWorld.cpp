@@ -152,6 +152,13 @@ bool StudentWorld::actorIsBlockingAtXY(double x, double y)
     return false;
 }
 
+bool StudentWorld::actorAtXYTakesPeaDamage(double x, double y){
+    if(actorAt(x, y) != *m_actors.end()){
+        if(actorAt(x, y) -> takesPeaDamage()) return true;
+    }
+    return false;
+}
+
 //ACTOR AT X,Y BUT DOESN'T BLOCK MOVEMENT
 bool StudentWorld::actorNotBlockingAtXY(double x, double y)
 {

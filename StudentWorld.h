@@ -40,6 +40,8 @@ public:
     void restorePlayerHealth();
     void restorePlayerPeas();
     
+    bool actorAtXYTakesPeaDamage(double x, double y);
+    
   bool anyCrystals() const;
   void decCrystals();
     
