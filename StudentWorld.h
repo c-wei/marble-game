@@ -10,7 +10,7 @@
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
 class Actor;
 class Avatar;
-class Wall;
+//class Wall;
 
 class StudentWorld : public GameWorld
 {
@@ -24,15 +24,15 @@ public:
     
     //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
 
-    bool actorIsBlockingAt(double x, double y);
-    bool actorNotBlockingAt(double x, double y); //returns if there is an actor that exists but isn't blockign the road
-    //Avatar* getAvatar();
+    bool actorIsBlockingAtXY(double x, double y);
+    bool actorNotBlockingAtXY(double x, double y); //returns if there is an actor that exists but isn't blockign the road
     std::list<Actor*>& getActors();
     Actor* actorAt(double x, double y);
     void removeDeadGameObjects();
     int getBonus();
     std::string format(int score, int level, int lives, int health, int ammo, int bonus);
     void setDisplayText();
+    
     void addPea(int x, int y, int dir);
 
     double getAvatarX();
@@ -40,10 +40,13 @@ public:
     void restorePlayerHealth();
     void restorePlayerPeas();
     
+  bool anyCrystals() const;
+  void decCrystals();
+    
 private:
     Avatar* m_avatar;
     std::list<Actor*> m_actors;
-    int bonusPts;
+    int bonusPts, m_numCrystals;
 };
 
 #endif // STUDENTWORLD_H_

@@ -21,6 +21,7 @@ StudentWorld::StudentWorld(string assetPath)
 {
     m_avatar = nullptr;
     m_actors.clear();
+    m_numCrystals = 0;
 }
 
 StudentWorld::~StudentWorld(){
@@ -63,6 +64,7 @@ int StudentWorld::init()
                         break;
                     case Level::crystal:
                         m_actors.push_back(new Crystal(this, x, y));
+                        m_numCrystals++;
                         break;
                     case Level::extra_life:
                         m_actors.push_back(new ExtraLifeGoodie(this, x, y));
@@ -74,7 +76,7 @@ int StudentWorld::init()
                         m_actors.push_back(new AmmoGoodie(this, x, y));
                         break;
                     case Level::marble:
-                        m_actors.push_back(new Marble(this, x, y));
+                        m_actors.push_front(new Marble(this, x, y));
                         break;
                     case Level::horiz_ragebot:
                         m_actors.push_back(new RageBot(this, x, y, Alive::right));
@@ -131,20 +133,18 @@ void StudentWorld::cleanUp()
 }
 
 //----------------------------------------------------------HELPER FUNCTIONS----------------------------------------------------------
-/*
-Avatar* StudentWorld::getAvatar()
-{
-    return m_avatar;
-}
-*/
-bool StudentWorld::actorIsBlockingAt(double x, double y)
+
+
+//ACTOR AT X,Y AND BLOCKS MOVEMENT
+bool StudentWorld::actorIsBlockingAtXY(double x, double y)
 {
      list<Actor*>::iterator it;
     if(m_avatar->getX() == x && m_avatar->getY() == y) 
         return true;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
-        if((*it)->getX() == x && (*it)->getY() == y && (*it) -> blocksMovement())
+        if((*it)->getX() == x && (*it)->getY() == y && (*it)->
+           blocksMovement())
                 return true;
         else ;
     }
@@ -152,7 +152,8 @@ bool StudentWorld::actorIsBlockingAt(double x, double y)
     return false;
 }
 
-bool StudentWorld::actorNotBlockingAt(double x, double y)
+//ACTOR AT X,Y BUT DOESN'T BLOCK MOVEMENT
+bool StudentWorld::actorNotBlockingAtXY(double x, double y)
 {
     list<Actor*>::iterator it;
     if(m_avatar->getX() == x && m_avatar->getY() == y)
@@ -167,7 +168,6 @@ bool StudentWorld::actorNotBlockingAt(double x, double y)
     return false;
 }
 
-//NOT FINDING THE ACTOR AT X,Y
 Actor* StudentWorld::actorAt(double x, double y)
 {
     list<Actor*>::iterator it;
@@ -197,16 +197,6 @@ void StudentWorld::removeDeadGameObjects()
     }
 }
 
-void StudentWorld::addPea(int x, int y, int dir)
-{
-    m_actors.push_back(new Pea(this, x, y, dir));
-}
-
-int StudentWorld::getBonus()
-{
-    return bonusPts;
-}
-
 string StudentWorld::format(int score, int level, int lives, int health, int ammo, int bonus)
 {
     string formattedOutput = "";
@@ -230,15 +220,23 @@ void StudentWorld::setDisplayText()
     int lives = getLives();
     int health = m_avatar->getHealth();
     int ammo = m_avatar->getAmmo();
-    // Next, create a string from your statistics, of the form:
-    // Score: 0000100 Level: 03 Lives: 3 Health: 70% Ammo: 216 Bonus: 34
     string s = format(score, level, lives, health, ammo, bonus);
-    // Finally, update the display text at the top of the screen with your // newly created stats
-    setGameStatText(s); // calls our provided GameWorld::setGameStatText
+    setGameStatText(s);
 }
 
+void StudentWorld::addPea(int x, int y, int dir) { m_actors.push_back(new Pea(this, x, y, dir)); }
+
+
+bool StudentWorld::anyCrystals() const{
+    if(m_numCrystals > 0) return true;
+    return false;
+}
+void StudentWorld::decCrystals(){
+    m_numCrystals--;
+}
+
+int StudentWorld::getBonus() { return bonusPts; }
 double StudentWorld::getAvatarX() { return m_avatar -> getX(); }
 double StudentWorld::getAvatarY() { return m_avatar -> getY(); }
-
 void StudentWorld::restorePlayerHealth() { m_avatar->restoreHealth(); }
 void StudentWorld::restorePlayerPeas() { m_avatar-> restorePeas(); }
