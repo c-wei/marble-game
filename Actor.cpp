@@ -99,7 +99,7 @@ bool Pit::takesPeaDamage() const { return false; }
 Pea::Pea(StudentWorld* sw, double x, double y, int dir) : Actor(sw, IID_PEA, x, y, dir, true) { }
 Pea::~Pea() { }
 
-//ONLY SHOWS THE PEA BEING SHOT WHEN THE ACTOR'S TWO STEPS AWAy
+//TODO: HELP ONLY SHOWS THE PEA BEING SHOT WHEN THE ACTOR'S TWO STEPS AWAy
 void Pea::doSomething(){
     if(!isActive()) return;
     if(getWorld()->actorAtXYTakesPeaDamage(getX(), getY()))
@@ -110,10 +110,12 @@ void Pea::doSomething(){
             actor->takeDamage(2);
             setActiveState(false);
         }
-        else if(!actor->canTakeDamage())
+        else if(!actor->canTakeDamage()){
             setActiveState(false);
+        }
     }
     moveForward();
+    //if(!isActive()) return;
     if(getWorld()->actorAtXYTakesPeaDamage(getX(), getY()))
     {
         Actor* actor = getWorld()->actorAt(getX(), getY());
@@ -122,8 +124,9 @@ void Pea::doSomething(){
             actor->takeDamage(2);
             setActiveState(false);
         }
-        else if(!actor->canTakeDamage())
+        else if(!actor->canTakeDamage()){
             setActiveState(false);
+        }
     }
 }
 

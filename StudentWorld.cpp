@@ -95,7 +95,6 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    setDisplayText();
     
 
     list<Actor*>::iterator it;
@@ -117,6 +116,8 @@ int StudentWorld::move()
     //TODO: EXPOSE EXIT ONCE EVERYTHING COMPLETED
     
     //TODO: UPDATE STATUS
+    setDisplayText();
+
 
 	return GWSTATUS_CONTINUE_GAME;
 }
@@ -231,7 +232,7 @@ void StudentWorld::setDisplayText()
     setGameStatText(s);
 }
 
-void StudentWorld::addPea(int x, int y, int dir) { m_actors.push_back(new Pea(this, x, y, dir)); }
+void StudentWorld::addPea(int x, int y, int dir) { m_actors.push_front(new Pea(this, x, y, dir)); }
 
 
 bool StudentWorld::anyCrystals() const{
