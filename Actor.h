@@ -25,17 +25,24 @@ public:
     void moveForward();
 
     virtual void doSomething() = 0;
-    virtual bool isPit() const = 0;
-    virtual bool isMarble() const = 0;
+    virtual void getStolen();
+    virtual void getDropped(double x, double y);
+    virtual bool isPit() const;
+    virtual bool isMarble() const;
     virtual bool blocksMovement() const = 0;
     virtual bool canTakeDamage() const = 0;
-    virtual bool takesPeaDamage() const = 0;
+    virtual bool takesPeaHit() const = 0;
+    virtual bool isGoodie() const;
+    
+    int getID();
    
 private:
     StudentWorld* m_world;
     bool m_isActive;
     virtual void reactToObstruction();
     virtual bool noObstructionExists(double x, double y);
+    
+    int m_ID;
 };
 
 //---------------------------------------------------NON-ALIVE---------------------------------------------------
@@ -51,10 +58,10 @@ public:
     virtual void doSomething();
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
-    
+    //virtual bool isPit() const;
+    //virtual bool isMarble() const;
+    virtual bool takesPeaHit() const;
+   // virtual bool isGoodie() const;
 private:
     
 };
@@ -70,8 +77,9 @@ public:
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
     virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
+    //virtual bool isMarble() const;
+    virtual bool takesPeaHit() const;
+    //virtual bool isGoodie() const;
     
 private:
     
@@ -90,9 +98,10 @@ public:
     
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
+    //virtual bool isPit() const;
+    //virtual bool isMarble() const;
+    virtual bool takesPeaHit() const;
+    //virtual bool isGoodie() const;
 
 private:
     virtual void reactToObstruction();
@@ -100,64 +109,49 @@ private:
 };
 
 //---------------------------------------------------GOODIES---------------------------------------------------
+class Goodie : public Actor{
+public:
+    Goodie(StudentWorld* sw, double x, double y, int imageID);
+    virtual ~Goodie();
+    bool canBePickedUp() const;
+    virtual bool blocksMovement() const;
+    virtual bool canTakeDamage() const;
+    virtual bool takesPeaHit() const;
+    virtual bool isGoodie() const;
+    virtual void getStolen();
+    virtual void getDropped(double x, double y);
+private:
+    bool isPickupable;
+};
 //---------------------------------------------------EXTRA LIFE---------------------------------------------------
-
-class ExtraLifeGoodie : public Actor
+class ExtraLifeGoodie : public Goodie
 {
 public:
     ExtraLifeGoodie(StudentWorld* sw, double x, double y);
     virtual ~ExtraLifeGoodie();
-    
     virtual void doSomething();
-    
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
-    
-private:
     
 };
 
 //---------------------------------------------------RESTORE HEALTH---------------------------------------------------
-
-class RestoreHealthGoodie : public Actor
+class RestoreHealthGoodie : public Goodie
 {
 public:
     RestoreHealthGoodie(StudentWorld* sw, double x, double y);
     virtual ~RestoreHealthGoodie();
     
     virtual void doSomething();
-    
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
-    
-private:
-    
 };
 
 //---------------------------------------------------AMMO---------------------------------------------------
 
-class AmmoGoodie : public Actor
+class AmmoGoodie : public Goodie
 {
 public:
     AmmoGoodie(StudentWorld* sw, double x, double y);
     virtual ~AmmoGoodie();
     
     virtual void doSomething();
-    
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
-    
-private:
-    
 };
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
@@ -172,10 +166,11 @@ public:
     
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
-    virtual bool takesPeaDamage() const;
-
+    //virtual bool isPit() const;
+    //virtual bool isMarble() const;
+    virtual bool takesPeaHit() const;
+    //virtual bool isGoodie() const;
+    
 private:
 
 };
@@ -189,7 +184,7 @@ public:
     Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp);
     virtual ~Alive();
     
-    void takeDamage(int damage);
+    virtual void takeDamage(int damage);
     
     //getters
     bool isAlive();
@@ -198,7 +193,9 @@ public:
     //setters
     void setDead();
     void setHP(int newHP);
-    virtual bool takesPeaDamage() const;
+    virtual bool takesPeaHit() const;
+    //virtual bool isGoodie() const;
+    
     
 private:
     virtual void playDamageSoundEffect() = 0;
@@ -227,8 +224,8 @@ public:
     void restorePeas();
     
 
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
+   // virtual bool isPit() const;
+    //virtual bool isMarble() const;
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
 
@@ -254,7 +251,7 @@ public:
     
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
+    //virtual bool isPit() const;
     virtual bool isMarble() const;
 
 private:
@@ -263,65 +260,65 @@ private:
     virtual void reactToObstruction();
 
 };
-
-//---------------------------------------------------RAGEBOTS---------------------------------------------------
-
-class RageBot : public Alive
+//---------------------------------------------------ROBOTS---------------------------------------------------
+class Robot : public Alive
 {
 public:
-    
-    RageBot(StudentWorld* sw, double x, double y, int dir);
-    virtual ~RageBot();
+    Robot(StudentWorld* sw, double x, double y, int dir, int hp, int score, int imgID);
+    virtual ~Robot();
     
     int tickRest();
-    
-    void doSomething();
-    bool inRange();    
+    virtual void doSomething();
+    bool inRange();
     bool facingPlayer();
-    void shootPea();
     bool cantShoot();
-
+    void shootPea();
+    
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    virtual bool isPit() const;
-    virtual bool isMarble() const;
+    //virtual bool isPit() const;
+   // virtual bool isMarble() const;
 
 private:
+    int m_score;
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
     virtual void reactToObstruction();
-
+    virtual void robotDoSomething() = 0;
     int numTicks;
+
 };
+
+
+//---------------------------------------------------RAGEBOTS---------------------------------------------------
+class RageBot : public Robot{
+public:
+    RageBot(StudentWorld* sw, double x, double y, int dir);
+    virtual ~RageBot();
+private:
+    int numTicks;
+    virtual void robotDoSomething();
+};
+
 
 //---------------------------------------------------THIEFBOT FACTOR---------------------------------------------------
 
-class ThiefBotFactory : public Actor
-{
-public:
-    ThiefBotFactory(StudentWorld* sw, int imageID, double x, double y, int dir, bool vis, int type);
-    virtual ~ThiefBotFactory();
-    
-    StudentWorld* getWorld() const;
-    bool isActive();
-    void setActiveState(bool active);
-    virtual void takeDamage(int damage);
-
-    void moveForward();
-
-    virtual void doSomething() = 0;
-    virtual bool isPit() const = 0;
-    virtual bool isMarble() const = 0;
-    virtual bool blocksMovement() const = 0;
-    virtual bool canTakeDamage() const = 0;
-   
-private:
-    StudentWorld* m_world;
-    bool m_isActive;
-    virtual void reactToObstruction() = 0;
-};
 
 //---------------------------------------------------THIEFBOTS---------------------------------------------------
+
+class ThiefBot : public Robot{
+public:
+    ThiefBot(StudentWorld* sw, double x, double y, int dir);
+    virtual ~ThiefBot();
+    bool tryToTurn(int dir);
+    void takeDamage(int damage);
+    
+private:
+    int distanceBeforeTurning, trackDist;
+    virtual void robotDoSomething();
+    virtual void reactToObstruction();
+    bool hasGoodie;
+};
 
 //---------------------------------------------------NORMAL---------------------------------------------------
 /*
@@ -341,7 +338,7 @@ public:
 protected:
     int distanceBeforeTurning;
 };
-
-
 */
+
+
 #endif // ACTOR_H_

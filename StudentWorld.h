@@ -28,6 +28,7 @@ public:
     bool actorNotBlockingAtXY(double x, double y); //returns if there is an actor that exists but isn't blockign the road
     std::list<Actor*>& getActors();
     Actor* actorAt(double x, double y);
+    Actor* goodieAt(double x, double y);
     void removeDeadGameObjects();
     int getBonus();
     std::string format(int score, int level, int lives, int health, int ammo, int bonus);
@@ -37,10 +38,13 @@ public:
 
     double getAvatarX();
     double getAvatarY();
+    int getAvatarDir();
     void restorePlayerHealth();
     void restorePlayerPeas();
     
-    bool actorAtXYTakesPeaDamage(double x, double y);
+    bool actorAtXYTakesPeaHit(double x, double y);
+    bool actorAtXYisGoodie(double x, double y);
+    
     
   bool anyCrystals() const;
   void decCrystals();
