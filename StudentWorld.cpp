@@ -17,7 +17,7 @@ GameWorld* createStudentWorld(string assetPath)
 // Students:  Add code to this file, StudentWorld.h, Actor.h, and Actor.cpp
 
 StudentWorld::StudentWorld(string assetPath)
-: GameWorld(assetPath), bonusPts(1000)
+: GameWorld(assetPath), bonusPts(1000), levelComplete(false)
 {
     m_avatar = nullptr;
     m_actors.clear();
@@ -30,6 +30,7 @@ StudentWorld::~StudentWorld(){
 
 int StudentWorld::init()
 {
+    levelComplete = false; 
     Level lev(assetPath());
     //build file name
     ostringstream oss;
@@ -94,6 +95,9 @@ int StudentWorld::init()
                     case Level::ammo:
                         m_actors.push_front(new AmmoGoodie(this, x, y));
                         break;
+                    case Level::exit:
+                        m_actors.push_back(new Exit(this, x, y));
+                        break;
 
                 }
             }
@@ -114,6 +118,11 @@ int StudentWorld::move()
             (*it) -> doSomething();
             if(!m_avatar->isActive())
                 return GWSTATUS_PLAYER_DIED;
+            if(levelComplete == true){
+                increaseScore(bonusPts);
+                return GWSTATUS_FINISHED_LEVEL;
+
+            }
             //TODO: IMPLEMENT IF PLAYER COMPLETES LEVEL
         }
     }
@@ -122,8 +131,14 @@ int StudentWorld::move()
     removeDeadGameObjects();
     
     if(bonusPts > 0) bonusPts--;
-    
-    //TODO: EXPOSE EXIT ONCE EVERYTHING COMPLETED
+
+    list<Actor*>::iterator it2;
+    if(!anyCrystals()){
+        for(it2 = m_actors.begin(); it2 != m_actors.end(); it2++){
+            if((*it2)->isExit())
+                (*it2)->setActiveState(true);
+        }
+    }
     
     //TODO: UPDATE STATUS
     setDisplayText();
@@ -288,11 +303,19 @@ void StudentWorld::addLifeGoodie(double x, double y){
 }
 
 void StudentWorld::addThiefBot(double x, double y){
-    m_actors.push_back(new ThiefBot(this, x, y, 5, 10, IID_THIEFBOT));
+    list<Actor*>::iterator it = m_actors.begin();
+    while(!(*it)->isFactory())
+        it++;
+    m_actors.insert(it, new ThiefBot(this, x, y, 5, 10, IID_THIEFBOT));
+    playSound(SOUND_ROBOT_BORN);
 }
 
 void StudentWorld::addMeanThiefBot(double x, double y){
-    m_actors.push_back(new MeanThiefBot(this, x, y));
+    list<Actor*>::iterator it = m_actors.begin();
+    while(!(*it)->isFactory())
+        it++;
+    m_actors.insert(it, new MeanThiefBot(this, x, y));
+    playSound(SOUND_ROBOT_BORN);
 
 }
 
@@ -301,3 +324,5 @@ double StudentWorld::getAvatarX() { return m_avatar -> getX(); }
 double StudentWorld::getAvatarY() { return m_avatar -> getY(); }
 void StudentWorld::restorePlayerHealth() { m_avatar->restoreHealth(); }
 void StudentWorld::restorePlayerPeas() { m_avatar-> restorePeas(); }
+
+void StudentWorld::setLevelComplete(){ levelComplete = true; }

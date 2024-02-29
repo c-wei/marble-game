@@ -39,7 +39,8 @@ public:
     virtual bool isAmmo() const;
     virtual bool isFactory() const;
     virtual bool isThiefBot() const;
-    int getID();
+    virtual bool isAvatar() const;
+    virtual bool isExit() const;
    
 private:
     StudentWorld* m_world;
@@ -47,10 +48,24 @@ private:
     virtual void reactToObstruction();
     virtual bool noObstructionExists(double x, double y);
     
-    int m_ID;
 };
 
+
 //---------------------------------------------------NON-ALIVE---------------------------------------------------
+
+//---------------------------------------------------EXIT---------------------------------------------------
+class Exit:public Actor{
+public:
+    Exit(StudentWorld* sw, double x, double y);
+    virtual ~Exit();
+    virtual void doSomething();
+    virtual bool blocksMovement() const;
+    virtual bool canTakeDamage() const;
+    virtual bool takesPeaHit() const;
+    virtual bool isExit() const;
+private:
+    bool playedSound;
+};
 
 //---------------------------------------------------THIEFBOT FACTORY---------------------------------------------------
 
@@ -251,6 +266,7 @@ public:
     //virtual bool isMarble() const;
     virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
+    virtual bool isAvatar() const;
 
 private:
     int m_peaCount;

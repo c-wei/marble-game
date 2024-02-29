@@ -54,10 +54,12 @@ public:
     void addLifeGoodie(double x, double y);
     void addThiefBot(double x, double y);
     void addMeanThiefBot(double x, double y);
+    void setLevelComplete();
 private:
     Avatar* m_avatar;
     std::list<Actor*> m_actors;
     int bonusPts, m_numCrystals;
+    bool levelComplete;
 };
 
 #endif // STUDENTWORLD_H_

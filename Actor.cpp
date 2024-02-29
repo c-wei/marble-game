@@ -5,7 +5,7 @@ using namespace std;
 
 //---------------------------------------------------ACTOR BASECLASS---------------------------------------------------
 
-Actor::Actor(StudentWorld* sw, int imageID, double x, double y, int dir, bool vis) : GraphObject(imageID, x, y, dir), m_world(sw), m_isActive(true), m_ID(imageID)
+Actor::Actor(StudentWorld* sw, int imageID, double x, double y, int dir, bool vis) : GraphObject(imageID, x, y, dir), m_world(sw), m_isActive(true)
 {
     if(vis)
         setVisible(true);
@@ -64,13 +64,34 @@ bool Actor::isMarble() const { return false; }
 bool Actor::isPit() const { return false; }
 bool Actor::isGoodie() const { return false; }
 
-int Actor::getID() { return m_ID; }
 bool Actor::isAmmo() const { return false; }
 bool Actor::isRestoreHealth() const { return false; }
 bool Actor::isExtraLife() const { return false; }
 bool Actor::isFactory() const { return false; }
 bool Actor::isThiefBot() const { return false; }
+bool Actor::isAvatar() const { return false; }
+bool Actor::isExit() const { return false; }
+//---------------------------------------------------EXIT---------------------------------------------------
+Exit::Exit(StudentWorld* sw, double x, double y) : Actor(sw, IID_EXIT, x, y, none, false) ,playedSound(false){ };
+Exit::~Exit() {}
+void Exit::doSomething(){
+    if(!getWorld() -> anyCrystals()){
+        setVisible(true);
+        if(playedSound == false){
+            if(getWorld()->actorIsBlockingAtXY(getX(), getY()) && getWorld()->actorAt(getX(), getY())->isAvatar()){
+                getWorld()->playSound(SOUND_FINISHED_LEVEL);
+                getWorld()->increaseScore(2000);
+                getWorld()->setLevelComplete();
+                playedSound = true;
+            }
+        }
+    }
+}
 
+bool Exit::blocksMovement() const { return false; }
+bool Exit::canTakeDamage() const { return false; }
+bool Exit::takesPeaHit() const { return false; }
+bool Exit::isExit() const {return true;}
 //---------------------------------------------------THIEFBOT FACTORY---------------------------------------------------
 ThiefBotFactory::ThiefBotFactory(StudentWorld *sw, double x, double y, ProductType type) : Actor(sw, IID_ROBOT_FACTORY, x, y, none, true), m_type(type), thiefBotCount(0){}
 ThiefBotFactory::~ThiefBotFactory(){}
@@ -288,6 +309,7 @@ void Crystal::doSomething(){
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
         getWorld()->increaseScore(50);
+        getWorld()->decCrystals();
         setActiveState(false);
     }
 }
@@ -463,7 +485,7 @@ bool Avatar::blocksMovement() const { return true; }
 //bool Avatar::isMarble() const { return false; }
 //bool Avatar::isPit() const { return false; }
 bool Avatar::canTakeDamage() const { return true;}
-
+bool Avatar::isAvatar() const { return true; }
 void Avatar::playDeadSoundEffect() { getWorld()->playSound(SOUND_PLAYER_DIE); }
 void Avatar::playDamageSoundEffect() { getWorld()->playSound(SOUND_PLAYER_IMPACT); }
 
