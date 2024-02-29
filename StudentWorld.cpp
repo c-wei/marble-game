@@ -52,7 +52,8 @@ int StudentWorld::init()
                 {
                         
                         //CHECK FOR EXIT AT THE VERY BEGINNING OF THE LIST AND THEN RETRIEVE EXIT BY RETRIEVING FIRST LIST ITEM
-                    
+                    case Level::empty:
+                        break;
                     case Level::player:
                         m_avatar = new Avatar(this, x, y);
                         break;
@@ -72,6 +73,7 @@ int StudentWorld::init()
                     case Level::vert_ragebot:
                         m_actors.push_back(new RageBot(this, x, y, Alive::down));
                         break;
+                        //TODO:IMPLEMENT THIEFBOT FACTORY
                     case Level::thiefbot_factory:
                         m_actors.push_back(new ThiefBot(this, x, y, Actor::right));
                         break;
@@ -272,6 +274,15 @@ void StudentWorld::decCrystals(){
 int StudentWorld::getAvatarDir(){
     return m_avatar->getDirection();
 }
+
+void StudentWorld::addAmmoGoodie(double x, double y) { m_actors.push_front(new AmmoGoodie(this, x, y));}
+
+void StudentWorld::addHealthGoodie(double x, double y) { m_actors.push_front(new RestoreHealthGoodie(this, x, y)); }
+
+void StudentWorld::addLifeGoodie(double x, double y){
+    m_actors.push_front(new ExtraLifeGoodie(this, x, y));
+}
+
 
 int StudentWorld::getBonus() { return bonusPts; }
 double StudentWorld::getAvatarX() { return m_avatar -> getX(); }

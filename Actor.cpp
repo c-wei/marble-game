@@ -65,6 +65,9 @@ bool Actor::isPit() const { return false; }
 bool Actor::isGoodie() const { return false; }
 
 int Actor::getID() { return m_ID; }
+bool Actor::isAmmo() const { return false; }
+bool Actor::isRestoreHealth() const { return false; }
+bool Actor::isExtraLife() const { return false; }
 //---------------------------------------------------WALL---------------------------------------------------
 
 Wall::Wall(StudentWorld* sw, double x, double y) : Actor(sw, IID_WALL, x, y, none, true){ }
@@ -170,21 +173,15 @@ bool Pea::takesPeaHit() const { return false; }
 
 //---------------------------------------------------GOODIES---------------------------------------------------
 
-Goodie::Goodie(StudentWorld* sw, double x, double y, int imageID) : Actor(sw, imageID, x, y, none, true), isPickupable(true) { }
+Goodie::Goodie(StudentWorld* sw, double x, double y, int imageID) : Actor(sw, imageID, x, y, none, true) { }
 Goodie::~Goodie() { }
-bool Goodie::canBePickedUp() const { return isPickupable; }
+//bool Goodie::canBePickedUp() const { return isPickupable; }
 bool Goodie::blocksMovement() const { return false; }
 bool Goodie::canTakeDamage() const { return false; }
 bool Goodie::takesPeaHit() const { return false; }
 bool Goodie::isGoodie() const { return true; }
 void Goodie::getStolen() {
-    isPickupable = false;
-    setVisible(false);
-}
-void Goodie::getDropped(double x, double y){
-    isPickupable = true;
-    moveTo(x, y);
-    setVisible(true);
+    setActiveState(false);
 }
 
 
@@ -193,7 +190,7 @@ ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* sw, double x, double y) : Goodie(
 
 ExtraLifeGoodie::~ExtraLifeGoodie() {}
 void ExtraLifeGoodie::doSomething(){
-    if(!isActive() || !canBePickedUp()) return;
+    if(!isActive()) return;
     if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
@@ -203,12 +200,14 @@ void ExtraLifeGoodie::doSomething(){
     }
 }
 
+bool ExtraLifeGoodie::isExtraLife() const { return true; }
+
 //---------------------------------------------------RESTORE HEALTH GOODIE-----------------------------------------------
 RestoreHealthGoodie::RestoreHealthGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_RESTORE_HEALTH){ }
 RestoreHealthGoodie::~RestoreHealthGoodie() { setActiveState(false); }
 
 void RestoreHealthGoodie::doSomething(){
-    if(!isActive() || !canBePickedUp()) return;
+    if(!isActive()) return;
     if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
@@ -218,12 +217,15 @@ void RestoreHealthGoodie::doSomething(){
     }
 }
 
+bool RestoreHealthGoodie::isRestoreHealth() const { return true; }
+
+
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
 AmmoGoodie::AmmoGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_AMMO) { }
 AmmoGoodie::~AmmoGoodie() {setActiveState(false);}
 
 void AmmoGoodie::doSomething(){
-    if(!isActive() || !canBePickedUp()) return;
+    if(!isActive()) return;
     if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
     {
         getWorld()->playSound(SOUND_GOT_GOODIE);
@@ -232,6 +234,8 @@ void AmmoGoodie::doSomething(){
         setActiveState(false);
     }
 }
+
+bool AmmoGoodie::isAmmo() const { return true; }
 
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
@@ -394,16 +398,18 @@ void Avatar::reactToObstruction(){
 }
 
 void Avatar::shootPea(){
-    int x = getX();
-    int y = getY();
-    int dir = getDirection();
-    if(dir == right) x += 1;
-    else if(dir == left) x -= 1;
-    else if (dir == down) y -= 1;
-    else if(dir == up) y += 1;
-    getWorld()->addPea(x, y, dir);
-    getWorld()->playSound(SOUND_PLAYER_FIRE);
-    m_peaCount--;
+    if(m_peaCount>0){
+        int x = getX();
+        int y = getY();
+        int dir = getDirection();
+        if(dir == right) x += 1;
+        else if(dir == left) x -= 1;
+        else if (dir == down) y -= 1;
+        else if(dir == up) y += 1;
+        getWorld()->addPea(x, y, dir);
+        getWorld()->playSound(SOUND_PLAYER_FIRE);
+        m_peaCount--;
+    }
 }
 
 //getters
@@ -609,19 +615,29 @@ void RageBot::robotDoSomething(){
         moveForward();
 }
 
-//---------------------------------------------------THIEFBOT FACTOR---------------------------------------------------
+//---------------------------------------------------THIEFBOT ---------------------------------------------------
 
 ThiefBot::ThiefBot(StudentWorld* sw, double x, double y, int dir) : Robot(sw, x, y, right, 5, 10, IID_THIEFBOT) {
     distanceBeforeTurning = randInt(1, 6);
     trackDist = 0;
     hasGoodie = false;
+    hasAmmo = false;
+    hasHealth = false;
+    hasLife = false;
 }
 ThiefBot::~ThiefBot() { }
 
 void ThiefBot::robotDoSomething(){
-    int r = randInt(1, 10);
+    int r = randInt(1, 2);
     if(getWorld()->actorAtXYisGoodie(getX(), getY()) && r == 1 && !hasGoodie){
-        getWorld()->goodieAt(getX(), getY())->getStolen();
+        Actor* goodie = getWorld()->goodieAt(getX(), getY());
+        goodie->getStolen();
+        if(goodie->isAmmo())
+            hasAmmo = true;
+        else if(goodie->isRestoreHealth())
+            hasHealth = true;
+        else if(goodie->isExtraLife())
+            hasLife = true;
         getWorld()->playSound(SOUND_ROBOT_MUNCH);
         hasGoodie = true;
     }
@@ -698,10 +714,17 @@ bool ThiefBot::tryToTurn(int dir){
 void ThiefBot::takeDamage(int damage){
     Alive::takeDamage(damage);
     if(isAlive() == false){
-        getWorld()->goodieAt(getX(), getY())->getDropped(getX(), getY());
+        if(hasGoodie){
+            if(hasAmmo)
+                getWorld()->addAmmoGoodie(getX(), getY());
+            else if(hasLife)
+                getWorld()->addLifeGoodie(getX(), getY());
+            else if(hasHealth)
+                getWorld()->addHealthGoodie(getX(), getY());
+        }
     }
 }
 
 
-//---------------------------------------------------THIEFBOTS---------------------------------------------------
+//---------------------------------------------------MEAN THIEFBOTS---------------------------------------------------
 

@@ -49,6 +49,10 @@ public:
   bool anyCrystals() const;
   void decCrystals();
     
+    void addAmmoGoodie(double x, double y);
+    void addHealthGoodie(double x, double y);
+    void addLifeGoodie(double x, double y);
+    
 private:
     Avatar* m_avatar;
     std::list<Actor*> m_actors;
