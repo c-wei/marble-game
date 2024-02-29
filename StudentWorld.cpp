@@ -54,6 +54,7 @@ int StudentWorld::init()
                         //CHECK FOR EXIT AT THE VERY BEGINNING OF THE LIST AND THEN RETRIEVE EXIT BY RETRIEVING FIRST LIST ITEM
                     case Level::empty:
                         break;
+ 
                     case Level::player:
                         m_avatar = new Avatar(this, x, y);
                         break;
@@ -75,7 +76,10 @@ int StudentWorld::init()
                         break;
                         //TODO:IMPLEMENT THIEFBOT FACTORY
                     case Level::thiefbot_factory:
-                        m_actors.push_back(new ThiefBot(this, x, y, Actor::right));
+                        m_actors.push_back(new ThiefBotFactory(this, x, y, ThiefBotFactory::REGULAR));
+                        break;
+                    case Level::mean_thiefbot_factory:
+                        m_actors.push_back(new ThiefBotFactory(this, x, y, ThiefBotFactory::MEAN));
                         break;
                     case Level::crystal:
                         m_actors.push_front(new Crystal(this, x, y));
@@ -90,7 +94,7 @@ int StudentWorld::init()
                     case Level::ammo:
                         m_actors.push_front(new AmmoGoodie(this, x, y));
                         break;
-                               
+
                 }
             }
         }
@@ -283,6 +287,14 @@ void StudentWorld::addLifeGoodie(double x, double y){
     m_actors.push_front(new ExtraLifeGoodie(this, x, y));
 }
 
+void StudentWorld::addThiefBot(double x, double y){
+    m_actors.push_back(new ThiefBot(this, x, y, 5, 10, IID_THIEFBOT));
+}
+
+void StudentWorld::addMeanThiefBot(double x, double y){
+    m_actors.push_back(new MeanThiefBot(this, x, y));
+
+}
 
 int StudentWorld::getBonus() { return bonusPts; }
 double StudentWorld::getAvatarX() { return m_avatar -> getX(); }

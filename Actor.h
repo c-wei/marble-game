@@ -37,7 +37,8 @@ public:
     virtual bool isExtraLife() const;
     virtual bool isRestoreHealth() const;
     virtual bool isAmmo() const;
-    
+    virtual bool isFactory() const;
+    virtual bool isThiefBot() const;
     int getID();
    
 private:
@@ -51,6 +52,23 @@ private:
 
 //---------------------------------------------------NON-ALIVE---------------------------------------------------
 
+//---------------------------------------------------THIEFBOT FACTORY---------------------------------------------------
+
+class ThiefBotFactory: public Actor{
+public:
+    enum ProductType { REGULAR, MEAN };
+    ThiefBotFactory(StudentWorld* sw, double x, double y, ProductType type);
+    virtual ~ThiefBotFactory();
+    
+    virtual void doSomething();
+    virtual bool blocksMovement() const;
+    virtual bool canTakeDamage() const;
+    virtual bool takesPeaHit() const;
+    virtual bool isFactory() const;
+private:
+    ProductType m_type;
+    int thiefBotCount;
+};
 //---------------------------------------------------WALL---------------------------------------------------
 
 class Wall : public Actor
@@ -66,6 +84,7 @@ public:
     //virtual bool isMarble() const;
     virtual bool takesPeaHit() const;
    // virtual bool isGoodie() const;
+    
 private:
     
 };
@@ -313,13 +332,13 @@ private:
 
 class ThiefBot : public Robot{
 public:
-    ThiefBot(StudentWorld* sw, double x, double y, int dir);
+    ThiefBot(StudentWorld* sw, double x, double y, int hp, int score, int ID);
     virtual ~ThiefBot();
     bool tryToTurn(int dir);
     void takeDamage(int damage);
     virtual void reactToObstruction();
     virtual void robotDoSomething();
-
+    virtual bool isThiefBot() const;
 
 private:
     int distanceBeforeTurning, trackDist;
@@ -331,12 +350,11 @@ private:
 
 class MeanThiefBot : public ThiefBot {
 public:
-    MeanThiefBot(StudentWorld* sw, double x, double y, int dir);
+    MeanThiefBot(StudentWorld* sw, double x, double y);
     virtual ~MeanThiefBot();
-    
-private:
     virtual void robotDoSomething();
-    virtual void reactToObstruction();
+private:
+    bool shootingPea;
 };
 
 #endif // ACTOR_H_

@@ -68,6 +68,45 @@ int Actor::getID() { return m_ID; }
 bool Actor::isAmmo() const { return false; }
 bool Actor::isRestoreHealth() const { return false; }
 bool Actor::isExtraLife() const { return false; }
+bool Actor::isFactory() const { return false; }
+bool Actor::isThiefBot() const { return false; }
+
+//---------------------------------------------------THIEFBOT FACTORY---------------------------------------------------
+ThiefBotFactory::ThiefBotFactory(StudentWorld *sw, double x, double y, ProductType type) : Actor(sw, IID_ROBOT_FACTORY, x, y, none, true), m_type(type), thiefBotCount(0){}
+ThiefBotFactory::~ThiefBotFactory(){}
+
+void ThiefBotFactory::doSomething(){
+    thiefBotCount = 0;
+    double checkXLower = getX()-3;
+    if(checkXLower < 0) checkXLower = 0;
+    double checkXUpper = getX()+3;
+    if(checkXUpper>14) checkXUpper = 14;
+    double checkYLower = getY() - 3;
+    if(checkYLower < 0) checkYLower = 0;
+    double checkYUpper = getY() + 3;
+    if(checkYUpper > 14) checkYUpper = 14;
+    for(double x = checkXLower; x <= checkXUpper; x++){
+        for(double y = checkYLower; y <= checkYUpper; y++){
+            if(getWorld()->actorIsBlockingAtXY(x, y)){
+                if(getWorld()->actorAt(x, y)->isThiefBot())
+                    thiefBotCount++;
+            }
+        }
+    }
+    int r = randInt(1, 50);
+    if(thiefBotCount < 3 && !getWorld()->actorAt(getX(), getY())->isThiefBot() && r == 1){
+        if(m_type == REGULAR)
+            getWorld() -> addThiefBot(getX(), getY());
+        else if(m_type == MEAN)
+            getWorld() ->addMeanThiefBot(getX(), getY());
+    }
+}
+
+bool ThiefBotFactory::blocksMovement() const { return true; }
+bool ThiefBotFactory::canTakeDamage() const { return false; }
+bool ThiefBotFactory::takesPeaHit() const { return true; }
+bool ThiefBotFactory::isFactory() const { return true; }
+
 //---------------------------------------------------WALL---------------------------------------------------
 
 Wall::Wall(StudentWorld* sw, double x, double y) : Actor(sw, IID_WALL, x, y, none, true){ }
@@ -617,7 +656,7 @@ void RageBot::robotDoSomething(){
 
 //---------------------------------------------------THIEFBOT ---------------------------------------------------
 
-ThiefBot::ThiefBot(StudentWorld* sw, double x, double y, int dir) : Robot(sw, x, y, right, 5, 10, IID_THIEFBOT) {
+ThiefBot::ThiefBot(StudentWorld* sw, double x, double y, int hp, int score, int ID) : Robot(sw, x, y, right, hp, score, ID) {
     distanceBeforeTurning = randInt(1, 6);
     trackDist = 0;
     hasGoodie = false;
@@ -628,7 +667,7 @@ ThiefBot::ThiefBot(StudentWorld* sw, double x, double y, int dir) : Robot(sw, x,
 ThiefBot::~ThiefBot() { }
 
 void ThiefBot::robotDoSomething(){
-    int r = randInt(1, 2);
+    int r = randInt(1, 10);
     if(getWorld()->actorAtXYisGoodie(getX(), getY()) && r == 1 && !hasGoodie){
         Actor* goodie = getWorld()->goodieAt(getX(), getY());
         goodie->getStolen();
@@ -725,6 +764,16 @@ void ThiefBot::takeDamage(int damage){
     }
 }
 
+bool ThiefBot::isThiefBot() const { return true; }
+
 
 //---------------------------------------------------MEAN THIEFBOTS---------------------------------------------------
 
+MeanThiefBot::MeanThiefBot(StudentWorld* sw, double x, double y) : ThiefBot(sw, x, y, 8, 20, IID_MEAN_THIEFBOT) {}
+MeanThiefBot::~MeanThiefBot() {}
+void MeanThiefBot::robotDoSomething(){
+    if(inRange() && facingPlayer() && !cantShoot())
+        shootPea();
+    else
+        ThiefBot::robotDoSomething();
+}
