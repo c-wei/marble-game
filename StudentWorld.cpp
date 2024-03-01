@@ -31,6 +31,8 @@ StudentWorld::~StudentWorld(){
 int StudentWorld::init()
 {
     levelComplete = false; 
+    bonusPts = 1000;
+    m_numCrystals = 0;
     Level lev(assetPath());
     //build file name
     ostringstream oss;
@@ -169,9 +171,9 @@ bool StudentWorld::actorIsBlockingAtXY(double x, double y)
         return true;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
-        if((*it)->getX() == x && (*it)->getY() == y && (*it)->
-           blocksMovement())
-                return true;
+        if((*it)->getX() == x && (*it)->getY() == y && (*it)-> blocksMovement()){
+            return true;
+        }
         else ;
     }
      
@@ -193,8 +195,11 @@ bool StudentWorld::actorNotBlockingAtXY(double x, double y)
         return true;
     for(it = m_actors.begin(); it != m_actors.end(); it++)
     {
-        if((*it)->getX() == x && (*it)->getY() == y && !(*it) -> blocksMovement())
-                return true;
+        if((*it)->getX() == x && (*it)->getY() == y && !(*it) -> blocksMovement()){
+            if((*it)->isExit())
+                return false;
+            else return true;
+        }
         else ;
     }
      

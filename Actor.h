@@ -17,23 +17,29 @@ public:
     Actor(StudentWorld* sw, int imageID, double x, double y, int dir, bool vis);
     virtual ~Actor();
     
+    virtual void doSomething() = 0;
+
+    //helper/misc
+    void moveForward();       //general move forward function
+    virtual void getStolen();
+
+    //getter
     StudentWorld* getWorld() const;
     bool isActive();
+
+    //setter
     void setActiveState(bool active);
     virtual void takeDamage(int damage);
+    
+    //characteristics
+    virtual bool takesPeaHit() const = 0;
+    virtual bool blocksMovement() const;
+    virtual bool canTakeDamage() const;
 
-    void moveForward();
-
-    virtual void doSomething() = 0;
-    virtual void getStolen();
-    virtual void getDropped(double x, double y);
+    //identifiers
     virtual bool isPit() const;
     virtual bool isMarble() const;
-    virtual bool blocksMovement() const = 0;
-    virtual bool canTakeDamage() const = 0;
-    virtual bool takesPeaHit() const = 0;
     virtual bool isGoodie() const;
-    
     virtual bool isExtraLife() const;
     virtual bool isRestoreHealth() const;
     virtual bool isAmmo() const;
@@ -41,12 +47,12 @@ public:
     virtual bool isThiefBot() const;
     virtual bool isAvatar() const;
     virtual bool isExit() const;
-   
+    
 private:
     StudentWorld* m_world;
     bool m_isActive;
-    virtual void reactToObstruction();
-    virtual bool noObstructionExists(double x, double y);
+    virtual void reactToObstruction();    //if actor moving forward runs into obstruction
+    virtual bool noObstructionExists(double x, double y);    //if the actor moving forward is able to move forward
     
 };
 
@@ -58,11 +64,12 @@ class Exit:public Actor{
 public:
     Exit(StudentWorld* sw, double x, double y);
     virtual ~Exit();
+    
     virtual void doSomething();
     virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
     virtual bool takesPeaHit() const;
     virtual bool isExit() const;
+    
 private:
     bool playedSound;
 };
@@ -76,10 +83,10 @@ public:
     virtual ~ThiefBotFactory();
     
     virtual void doSomething();
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
     virtual bool takesPeaHit() const;
     virtual bool isFactory() const;
+    int countThiefBots();
+    
 private:
     ProductType m_type;
     int thiefBotCount;
@@ -93,12 +100,7 @@ public:
     virtual ~Wall();
     
     virtual void doSomething();
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    //virtual bool isPit() const;
-    //virtual bool isMarble() const;
     virtual bool takesPeaHit() const;
-   // virtual bool isGoodie() const;
     
 private:
     
@@ -112,12 +114,8 @@ public:
     virtual ~Pit();
     
     virtual void doSomething();
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
     virtual bool isPit() const;
-    //virtual bool isMarble() const;
     virtual bool takesPeaHit() const;
-    //virtual bool isGoodie() const;
     
 private:
     
@@ -131,15 +129,11 @@ public:
     Pea(StudentWorld* sw, double x, double y, int dir);
     virtual ~Pea();
     
-    
-    virtual void doSomething();                    //continutes moving until it hits smth and possibly makes damage
+    void peaHelper();      //checks if something can be hit & take damage if possible
+    virtual void doSomething();
     
     virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    //virtual bool isPit() const;
-    //virtual bool isMarble() const;
     virtual bool takesPeaHit() const;
-    //virtual bool isGoodie() const;
 
 private:
     virtual void reactToObstruction();
@@ -149,14 +143,19 @@ private:
 //---------------------------------------------------GOODIES---------------------------------------------------
 class Goodie : public Actor{
 public:
-    Goodie(StudentWorld* sw, double x, double y, int imageID);
+    Goodie(StudentWorld* sw, double x, double y, int imageID, int score);
     virtual ~Goodie();
+    
+    void doSomething();
+    
     virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
     virtual bool takesPeaHit() const;
     virtual bool isGoodie() const;
     virtual void getStolen();
 private:
+    int m_score;
+    //auxiliary
+    virtual void goodieDoSomething()=0;
 };
 //---------------------------------------------------EXTRA LIFE---------------------------------------------------
 class ExtraLifeGoodie : public Goodie
@@ -164,9 +163,9 @@ class ExtraLifeGoodie : public Goodie
 public:
     ExtraLifeGoodie(StudentWorld* sw, double x, double y);
     virtual ~ExtraLifeGoodie();
-    virtual void doSomething();
     virtual bool isExtraLife() const;
-    
+private:
+    virtual void goodieDoSomething();
 };
 
 //---------------------------------------------------RESTORE HEALTH---------------------------------------------------
@@ -176,8 +175,10 @@ public:
     RestoreHealthGoodie(StudentWorld* sw, double x, double y);
     virtual ~RestoreHealthGoodie();
     
-    virtual void doSomething();
     virtual bool isRestoreHealth() const;
+private:
+    virtual void goodieDoSomething();
+
 };
 
 //---------------------------------------------------AMMO---------------------------------------------------
@@ -188,28 +189,26 @@ public:
     AmmoGoodie(StudentWorld* sw, double x, double y);
     virtual ~AmmoGoodie();
     
-    virtual void doSomething();
     virtual bool isAmmo() const;
+private:
+    virtual void goodieDoSomething();
+
 };
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
 
-class Crystal : public Actor
+class Crystal : public Goodie
 {
 public:
     Crystal(StudentWorld* sw, double x, double y);
     virtual ~Crystal();
-    
-    virtual void doSomething();
-    
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    //virtual bool isPit() const;
-    //virtual bool isMarble() const;
-    virtual bool takesPeaHit() const;
-    //virtual bool isGoodie() const;
+   
+    virtual bool isGoodie() const;
+    virtual void getStolen();
     
 private:
+    virtual void goodieDoSomething();
+
 
 };
 //---------------------------------------------------ALL THINGS ALIVE---------------------------------------------------
@@ -222,8 +221,6 @@ public:
     Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp);
     virtual ~Alive();
     
-    virtual void takeDamage(int damage);
-    
     //getters
     bool isAlive();
     int getHP() const;
@@ -231,14 +228,17 @@ public:
     //setters
     void setDead();
     void setHP(int newHP);
-    virtual bool takesPeaHit() const;
-    //virtual bool isGoodie() const;
+    virtual void takeDamage(int damage);
     
+    //identifiers
+    virtual bool takesPeaHit() const;
+    virtual bool canTakeDamage() const;
     
 private:
+    int m_hp;
+    //auxiliary
     virtual void playDamageSoundEffect() = 0;
     virtual void playDeadSoundEffect() = 0;
-    int m_hp;
 
 };
 
@@ -251,6 +251,7 @@ public:
     
     virtual void doSomething();
     
+    //helper
     void shootPea();
 
     //getters
@@ -261,15 +262,12 @@ public:
     void restoreHealth();
     void restorePeas();
     
-
-   // virtual bool isPit() const;
-    //virtual bool isMarble() const;
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
+    //identifier
     virtual bool isAvatar() const;
 
 private:
     int m_peaCount;
+    //auxiliary
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
     virtual void reactToObstruction();
@@ -286,14 +284,10 @@ public:
     virtual ~Marble();
     
     virtual void doSomething();                //does nothing
-    //void getPushed(); //move the marble if it's pushed
-    
-    virtual bool blocksMovement() const;
-    virtual bool canTakeDamage() const;
-    //virtual bool isPit() const;
     virtual bool isMarble() const;
 
 private:
+    //aux
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
     virtual void reactToObstruction();
@@ -313,18 +307,13 @@ public:
     bool cantShoot();
     void shootPea();
     
-    virtual bool blocksMovement() const;
     virtual bool canTakeDamage() const;
-    //virtual bool isPit() const;
-   // virtual bool isMarble() const;
     virtual void reactToObstruction();
     virtual void robotDoSomething() = 0;
 private:
-    int m_score;
+    int m_score, numTicks;
     virtual void playDamageSoundEffect();
     virtual void playDeadSoundEffect();
-
-    int numTicks;
 
 };
 
@@ -339,7 +328,6 @@ public:
 private:
     int numTicks;
 };
-
 
 //---------------------------------------------------THIEFBOT FACTOR---------------------------------------------------
 

@@ -14,16 +14,6 @@ Actor::Actor(StudentWorld* sw, int imageID, double x, double y, int dir, bool vi
 }
 Actor::~Actor() { }
 
-StudentWorld* Actor:: getWorld() const { return m_world; }
-bool Actor::isActive() { return m_isActive; }
-void Actor::setActiveState(bool active) { m_isActive = active; }
-void Actor::takeDamage(int damage) { return; }
-void Actor::reactToObstruction() { return; }
-bool Actor::noObstructionExists(double x, double y) {
-    return !(getWorld()->actorIsBlockingAtXY(x, y));
-}
-
-
 void Actor::moveForward(){
     if((isMarble() && getWorld()->getAvatarDir() == right) || getDirection() == right)
     {
@@ -57,13 +47,25 @@ void Actor::moveForward(){
     }
 }
 
+bool Actor::noObstructionExists(double x, double y) {
+    return !(getWorld()->actorIsBlockingAtXY(x, y));
+}
+void Actor::reactToObstruction() { return; }
+
+StudentWorld* Actor:: getWorld() const { return m_world; }
+bool Actor::isActive() { return m_isActive; }
+
+void Actor::setActiveState(bool active) { m_isActive = active; }
+void Actor::takeDamage(int damage) { return; }
+
+
+bool Actor::blocksMovement() const { return true; }
+bool Actor::canTakeDamage() const { return false; }
 void Actor::getStolen() { return; }
-void Actor::getDropped(double x, double y) { return; }
 
 bool Actor::isMarble() const { return false; }
 bool Actor::isPit() const { return false; }
 bool Actor::isGoodie() const { return false; }
-
 bool Actor::isAmmo() const { return false; }
 bool Actor::isRestoreHealth() const { return false; }
 bool Actor::isExtraLife() const { return false; }
@@ -74,6 +76,7 @@ bool Actor::isExit() const { return false; }
 //---------------------------------------------------EXIT---------------------------------------------------
 Exit::Exit(StudentWorld* sw, double x, double y) : Actor(sw, IID_EXIT, x, y, none, false) ,playedSound(false){ };
 Exit::~Exit() {}
+
 void Exit::doSomething(){
     if(!getWorld() -> anyCrystals()){
         setVisible(true);
@@ -89,14 +92,25 @@ void Exit::doSomething(){
 }
 
 bool Exit::blocksMovement() const { return false; }
-bool Exit::canTakeDamage() const { return false; }
 bool Exit::takesPeaHit() const { return false; }
 bool Exit::isExit() const {return true;}
+
 //---------------------------------------------------THIEFBOT FACTORY---------------------------------------------------
+
 ThiefBotFactory::ThiefBotFactory(StudentWorld *sw, double x, double y, ProductType type) : Actor(sw, IID_ROBOT_FACTORY, x, y, none, true), m_type(type), thiefBotCount(0){}
 ThiefBotFactory::~ThiefBotFactory(){}
 
 void ThiefBotFactory::doSomething(){
+    int r = randInt(1, 50);
+    if(countThiefBots() < 3 && !getWorld()->actorAt(getX(), getY())->isThiefBot() && r == 1){
+        if(m_type == REGULAR)
+            getWorld() -> addThiefBot(getX(), getY());
+        else if(m_type == MEAN)
+            getWorld() ->addMeanThiefBot(getX(), getY());
+    }
+}
+
+int ThiefBotFactory::countThiefBots(){
     thiefBotCount = 0;
     double checkXLower = getX()-3;
     if(checkXLower < 0) checkXLower = 0;
@@ -114,17 +128,9 @@ void ThiefBotFactory::doSomething(){
             }
         }
     }
-    int r = randInt(1, 50);
-    if(thiefBotCount < 3 && !getWorld()->actorAt(getX(), getY())->isThiefBot() && r == 1){
-        if(m_type == REGULAR)
-            getWorld() -> addThiefBot(getX(), getY());
-        else if(m_type == MEAN)
-            getWorld() ->addMeanThiefBot(getX(), getY());
-    }
+    return thiefBotCount;
 }
 
-bool ThiefBotFactory::blocksMovement() const { return true; }
-bool ThiefBotFactory::canTakeDamage() const { return false; }
 bool ThiefBotFactory::takesPeaHit() const { return true; }
 bool ThiefBotFactory::isFactory() const { return true; }
 
@@ -134,13 +140,7 @@ Wall::Wall(StudentWorld* sw, double x, double y) : Actor(sw, IID_WALL, x, y, non
 Wall::~Wall(){}
 
 void Wall::doSomething() { return; }
-
-bool Wall::blocksMovement() const { return true; }
-bool Wall::canTakeDamage() const { return false;}
-//bool Wall::isMarble() const { return false; }
-//bool Wall::isPit() const { return false; }
 bool Wall::takesPeaHit() const { return true; }
-//bool Wall::isGoodie() const { return false; }
 
 //---------------------------------------------------PIT---------------------------------------------------
 
@@ -159,20 +159,15 @@ void Pit::doSomething()
      
 }
 
-bool Pit::blocksMovement() const { return true; }
-bool Pit::canTakeDamage() const { return false; }
-//bool Pit::isMarble() const { return false; }
 bool Pit::isPit() const { return true; }
 bool Pit::takesPeaHit() const { return false; }
-//bool Pit::isGoodie() const { return false; }
 
 //---------------------------------------------------PEAS---------------------------------------------------
 
 Pea::Pea(StudentWorld* sw, double x, double y, int dir) : Actor(sw, IID_PEA, x, y, dir, true) { }
 Pea::~Pea() { }
 
-void Pea::doSomething(){
-    if(!isActive()) return;
+void Pea::peaHelper(){
     if(getWorld()->actorAtXYTakesPeaHit(getX(), getY()))
     {
     Actor* actor = getWorld()->actorAt(getX(), getY());
@@ -185,19 +180,13 @@ void Pea::doSomething(){
             setActiveState(false);
         }
     }
+}
+
+void Pea::doSomething(){
+    if(!isActive()) return;
+    peaHelper();
     moveForward();
-    if(getWorld()->actorAtXYTakesPeaHit(getX(), getY()))
-    {
-        Actor* actor = getWorld()->actorAt(getX(), getY());
-        if(actor->canTakeDamage())
-        {
-            actor->takeDamage(2);
-            setActiveState(false);
-        }
-        else if(!actor->canTakeDamage()){
-            setActiveState(false);
-        }
-    }
+    peaHelper();
 }
 
 void Pea::reactToObstruction(){
@@ -225,19 +214,27 @@ bool Pea::noObstructionExists(double x, double y){
 }
 
 bool Pea::blocksMovement() const { return false; }
-bool Pea::canTakeDamage() const { return false; }
-//bool Pea::isPit() const { return false; }
-//bool Pea::isMarble() const { return false; }
+
 bool Pea::takesPeaHit() const { return false; }
-//bool Pea::isGoodie() const { return false; }
 
 //---------------------------------------------------GOODIES---------------------------------------------------
 
-Goodie::Goodie(StudentWorld* sw, double x, double y, int imageID) : Actor(sw, imageID, x, y, none, true) { }
+Goodie::Goodie(StudentWorld* sw, double x, double y, int imageID, int score) : Actor(sw, imageID, x, y, none, true), m_score(0) { }
+
 Goodie::~Goodie() { }
-//bool Goodie::canBePickedUp() const { return isPickupable; }
+
+void Goodie::doSomething(){
+    if(!isActive()) return;
+    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
+    {
+        getWorld()->playSound(SOUND_GOT_GOODIE);
+        getWorld()->increaseScore(m_score);
+        goodieDoSomething();
+        setActiveState(false);
+    }
+}
+
 bool Goodie::blocksMovement() const { return false; }
-bool Goodie::canTakeDamage() const { return false; }
 bool Goodie::takesPeaHit() const { return false; }
 bool Goodie::isGoodie() const { return true; }
 void Goodie::getStolen() {
@@ -246,86 +243,57 @@ void Goodie::getStolen() {
 
 
 //---------------------------------------------------EXTRA LIFE GOODIE---------------------------------------------------
-ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_EXTRA_LIFE) { }
+ExtraLifeGoodie::ExtraLifeGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_EXTRA_LIFE, 1000) { }
 
 ExtraLifeGoodie::~ExtraLifeGoodie() {}
-void ExtraLifeGoodie::doSomething(){
-    if(!isActive()) return;
-    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
-    {
-        getWorld()->playSound(SOUND_GOT_GOODIE);
-        getWorld()->increaseScore(1000);
-        getWorld()->incLives();
-        setActiveState(false);
-    }
-}
 
+void ExtraLifeGoodie::goodieDoSomething() { getWorld()-> incLives();}
 bool ExtraLifeGoodie::isExtraLife() const { return true; }
 
 //---------------------------------------------------RESTORE HEALTH GOODIE-----------------------------------------------
-RestoreHealthGoodie::RestoreHealthGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_RESTORE_HEALTH){ }
+RestoreHealthGoodie::RestoreHealthGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_RESTORE_HEALTH, 500){ }
 RestoreHealthGoodie::~RestoreHealthGoodie() { setActiveState(false); }
 
-void RestoreHealthGoodie::doSomething(){
-    if(!isActive()) return;
-    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
-    {
-        getWorld()->playSound(SOUND_GOT_GOODIE);
-        getWorld()->increaseScore(500);
-        getWorld()->restorePlayerHealth();
-        setActiveState(false);
-    }
-}
+void RestoreHealthGoodie::goodieDoSomething() { getWorld()->restorePlayerHealth();}
 
 bool RestoreHealthGoodie::isRestoreHealth() const { return true; }
 
 
 //---------------------------------------------------AMMO GOODIE-----------------------------------------------
-AmmoGoodie::AmmoGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_AMMO) { }
+AmmoGoodie::AmmoGoodie(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_AMMO, 100) { }
 AmmoGoodie::~AmmoGoodie() {setActiveState(false);}
-
-void AmmoGoodie::doSomething(){
-    if(!isActive()) return;
-    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
-    {
-        getWorld()->playSound(SOUND_GOT_GOODIE);
-        getWorld()->increaseScore(100);
-        getWorld()->restorePlayerPeas();
-        setActiveState(false);
-    }
-}
-
 bool AmmoGoodie::isAmmo() const { return true; }
 
+void AmmoGoodie::goodieDoSomething() { getWorld()->restorePlayerPeas();}
 
 //---------------------------------------------------CRYSTAL---------------------------------------------------
-
-Crystal::Crystal(StudentWorld* sw, double x, double y) : Actor(sw, IID_CRYSTAL, x, y, none, true) { }
+Crystal::Crystal(StudentWorld* sw, double x, double y) : Goodie(sw, x, y, IID_CRYSTAL, 50) { }
 Crystal::~Crystal() { }
 
-void Crystal::doSomething(){
-    if(!isActive()) return;
-    if(getWorld()->getAvatarX() == getX() && getWorld()->getAvatarY() == getY())
-    {
-        getWorld()->playSound(SOUND_GOT_GOODIE);
-        getWorld()->increaseScore(50);
-        getWorld()->decCrystals();
-        setActiveState(false);
-    }
-}
+void Crystal::getStolen() { return; }
 
-bool Crystal::blocksMovement() const { return false; }
-bool Crystal::canTakeDamage() const { return false;}
-//bool Crystal::isMarble() const { return false; }
-//bool Crystal::isPit() const { return false; }
-bool Crystal::takesPeaHit() const { return false; }
-//bool Crystal::isGoodie() const { return false; }
+bool Crystal::isGoodie() const { return false; }
+
+void Crystal::goodieDoSomething(){getWorld()->decCrystals();}
 
 //---------------------------------------------------ALIVE BASECLASS---------------------------------------------------
 
 Alive::Alive(StudentWorld* sw, int imageID, double x, double y, int dir, int hp) : Actor(sw, imageID, x, y, dir, true), m_hp(hp){ }
 Alive::~Alive(){}
 
+
+
+//getters
+bool Alive::isAlive(){
+    if(m_hp <= 0)
+        setDead();
+    return isActive();
+}
+int Alive::getHP() const { return m_hp; }
+
+//setters
+void Alive::setHP(int newHP) { m_hp = newHP; }
+void Alive::setDead() { setActiveState(false); }
 void Alive::takeDamage(int damage){
     m_hp -= damage;
     playDamageSoundEffect();
@@ -337,22 +305,9 @@ void Alive::takeDamage(int damage){
     else return;
 }
 
-//getters
-bool Alive::isAlive(){
-if(m_hp <= 0)
-    setDead();
-return isActive();
-}
-
-int Alive::getHP() const { return m_hp; }
-
-//setters
-void Alive::setHP(int newHP) { m_hp = newHP; }
-void Alive::setDead() { setActiveState(false); }
-
+//identifiers
 bool Alive::takesPeaHit() const { return true; }
-
-//bool Alive::isGoodie() const { return false; }
+bool Alive::canTakeDamage() const { return true; }
 
 //---------------------------------------------------AVATAR---------------------------------------------------
 Avatar::Avatar(StudentWorld* sw, double x, double y) : Alive(sw, IID_PLAYER, x, y, right, 20), m_peaCount(20){ }
@@ -367,7 +322,6 @@ void Avatar::doSomething()
         int ch;
         if (getWorld()->getKey(ch))
         {
-        // user hit a key this tick! switch (ch)
             switch(ch)
             {
                 case KEY_PRESS_ESCAPE:
@@ -414,22 +368,20 @@ void Avatar::reactToObstruction(){
             getWorld()->actorAt(getX()+1, getY())->moveTo(getX()+2, getY());
             moveTo(getX()+1, getY());
         }
-            
     }
     else if(dir == left && getWorld()->actorAt(getX() - 1, getY())->isMarble()){
-        if(getWorld()->actorIsBlockingAtXY(getX()-2, getY())){
+        if(getWorld()->actorIsBlockingAtXY(getX() - 2, getY())){
             if(getWorld()->actorAt(getX() - 2, getY())->isPit()){
                 getWorld()->actorAt(getX() - 1, getY())->moveTo(getX()-2, getY());
                 moveTo(getX()-1, getY());
             }
         }
-        else if(!getWorld()->actorNotBlockingAtXY(getX()+2, getY())){
+        else if(!getWorld()->actorNotBlockingAtXY(getX()-2, getY())){
             getWorld()->actorAt(getX()-1, getY())->moveTo(getX()-2, getY());
             moveTo(getX()-1, getY());
         }
             
     }
-    
     else if(dir == up && getWorld()->actorAt(getX(), getY() + 1)->isMarble()){
         if(getWorld()->actorIsBlockingAtXY(getX(), getY()+2)){
             if(getWorld()->actorAt(getX(), getY() + 2)->isPit()){
@@ -441,9 +393,7 @@ void Avatar::reactToObstruction(){
             getWorld()->actorAt(getX(), getY() + 1)->moveTo(getX(), getY() + 2);
             moveTo(getX(), getY() + 1);
         }
-            
     }
-    
     else if(dir == down && getWorld()->actorAt(getX(), getY()-1)->isMarble()){
         if(getWorld()->actorIsBlockingAtXY(getX(), getY()-2)){
             if(getWorld()->actorAt(getX(), getY() - 2)->isPit()){
@@ -481,11 +431,10 @@ int Avatar::getAmmo() const { return m_peaCount; }
 void Avatar::restoreHealth() { setHP(20); }
 void Avatar::restorePeas() { m_peaCount = 20; }
 
-bool Avatar::blocksMovement() const { return true; }
-//bool Avatar::isMarble() const { return false; }
-//bool Avatar::isPit() const { return false; }
-bool Avatar::canTakeDamage() const { return true;}
+//identifier
 bool Avatar::isAvatar() const { return true; }
+
+//auxiliary func
 void Avatar::playDeadSoundEffect() { getWorld()->playSound(SOUND_PLAYER_DIE); }
 void Avatar::playDamageSoundEffect() { getWorld()->playSound(SOUND_PLAYER_IMPACT); }
 
@@ -495,33 +444,30 @@ void Avatar::playDamageSoundEffect() { getWorld()->playSound(SOUND_PLAYER_IMPACT
 Marble::Marble(StudentWorld* sw, double x, double y) : Alive(sw, IID_MARBLE, x, y, none, 10) { }
 Marble::~Marble(){}
 
-
 void Marble::doSomething() { return; }
 
 void Marble::reactToObstruction()
 {
     int dir = getWorld()->getAvatarDir();
-    //TODO: check that there also isn't a goodie that would be blocking the marbles way
-    if(dir == right && (getWorld()->actorAt(getX() + 1, getY())->isPit() || getWorld()->actorNotBlockingAtXY(getX() + 1, getY()))){
+    if(dir == right && (getWorld()->actorAt(getX() + 1, getY())->isPit() || !getWorld()->goodieAt(getX()+1, getY()))/*getWorld()->actorNotBlockingAtXY(getX() + 1, getY()))*/){
         moveTo(getX()+1, getY());
     }
-    else if(dir == left && (getWorld()->actorAt(getX() - 1, getY())->isPit() || getWorld()->actorNotBlockingAtXY(getX() - 1, getY()))){
+    else if(dir == left && (getWorld()->actorAt(getX() - 1, getY())->isPit() || !getWorld()->goodieAt(getX()-1, getY()))/*getWorld()->actorNotBlockingAtXY(getX() + 1, getY()))*/){
         moveTo(getX()-1, getY());
     }
-    else if(dir == up && (getWorld()->actorAt(getX(), getY() + 1)->isPit()  || getWorld()->actorNotBlockingAtXY(getX(), getY() + 1))){
+    else if(dir == up && (getWorld()->actorAt(getX(), getY() + 1)->isPit() || !getWorld()->goodieAt(getX(), getY()-1))/*getWorld()->actorNotBlockingAtXY(getX() + 1, getY()))*/){
         moveTo(getX(), getY() + 1);
     }
-    else if(dir == down && (getWorld()->actorAt(getX(), getY() - 1)->isPit() || getWorld()->actorNotBlockingAtXY(getX(), getY() -1))){
+    else if(dir == down && (getWorld()->actorAt(getX(), getY() - 1)->isPit() || !getWorld()->goodieAt(getX(), getY()+1))/*getWorld()->actorNotBlockingAtXY(getX() + 1, getY()))*/){
         moveTo(getX(), getY() - 1);
     }
 }
 
-
-bool Marble::blocksMovement() const { return true; }
+//identifier
 bool Marble::isMarble() const { return true; }
-//bool Marble::isPit() const { return false; }
-bool Marble::canTakeDamage() const { return true;}
 
+//auxiliary
+//marble has no sound effects
 void Marble::playDeadSoundEffect() { return; }
 void Marble::playDamageSoundEffect() { return; }
 
@@ -588,7 +534,9 @@ bool Robot::cantShoot(){
         {
             if(getWorld()->actorIsBlockingAtXY(x, getY()))
             {
-                return true;
+                if(!(getWorld()->actorAt(x, getY())->canTakeDamage()) || !(getWorld()->actorAt(x, getY())->isMarble()))
+                    return false;
+                else return true;
             }
         }
     }
@@ -598,7 +546,10 @@ bool Robot::cantShoot(){
         {
             if(getWorld()->actorIsBlockingAtXY(x, getY()))
             {
-                return true;
+                if(!(getWorld()->actorAt(x, getY())->canTakeDamage()) || !(getWorld()->actorAt(x, getY())->isMarble()))
+                    return false;
+                else return true;
+               // return true;
             }
         }
     }
@@ -608,7 +559,9 @@ bool Robot::cantShoot(){
         {
             if(getWorld()->actorIsBlockingAtXY(getX(), y))
             {
-                return true;
+                if(!(getWorld()->actorAt(getX(), y)->canTakeDamage()) || !(getWorld()->actorAt(getX(), y)->isMarble()))
+                    return false;
+                else return true;
             }
         }
     }
@@ -618,7 +571,9 @@ bool Robot::cantShoot(){
         {
             if(getWorld()->actorIsBlockingAtXY(getX(), y))
             {
-                return true;
+                if(!(getWorld()->actorAt(getX(), y)->canTakeDamage()) || !(getWorld()->actorAt(getX(), y)->isMarble()))
+                    return false;
+               else return true;
             }
         }
     }
@@ -650,7 +605,7 @@ void Robot::reactToObstruction() {
 }
 
 
-bool Robot::blocksMovement() const { return true; }
+//bool Robot::blocksMovement() const { return true; }
 bool Robot::canTakeDamage() const { return true; }
 //bool Robot::isMarble() const { return false; }
 //bool Robot::isPit() const { return false; }
